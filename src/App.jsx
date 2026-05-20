@@ -269,8 +269,8 @@ export default function SuhailPortfolio() {
             const Icon = area.icon;
             return (
               <motion.div key={area.title} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                <Card className="rounded-[1.75rem] border-white/10 bg-white/[0.07]">
-                  <CardContent className="p-6">
+                <Card className="h-full min-h-[260px] rounded-[1.75rem] border-white/10 bg-white/[0.07]">
+                  <CardContent className="flex h-full flex-col justify-center p-8">
                     <Icon className="mb-5 h-8 w-8 text-cyan-300" />
                     <h3 className="text-xl font-bold text-white">{area.title}</h3>
                     <p className="mt-3 text-sm leading-6 text-slate-300">{area.text}</p>
