@@ -230,9 +230,12 @@ export default function SuhailPortfolio() {
     <main className={cx("min-h-screen overflow-hidden transition-colors duration-500", theme.main)}>
       <motion.div style={{ scaleX }} className={cx("fixed left-0 top-0 z-50 h-1 w-full origin-left", theme.progress)} />
 
-      <nav className={cx("fixed left-1/2 top-5 z-40 hidden w-[92%] max-w-6xl -translate-x-1/2 items-center justify-between rounded-full border px-5 py-3 backdrop-blur-2xl md:flex", theme.nav)}>
-        <a href="#home" className={cx("font-semibold tracking-wide", theme.brand)}>Suhail Kataria</a>
-        <div className={cx("flex items-center gap-6 text-sm", theme.navLinks)}>
+      <nav className={cx("fixed left-1/2 top-5 z-40 flex w-[92%] max-w-6xl -translate-x-1/2 items-center justify-between rounded-full border px-5 py-3 backdrop-blur-2xl", theme.nav)}>
+        <a href="#home" className={cx("font-semibold tracking-wide", theme.brand)}>
+          <span className="hidden sm:inline">Suhail Kataria</span>
+          <span className="sm:hidden">SK</span>
+        </a>
+        <div className={cx("flex items-center gap-2 text-[11px] sm:gap-4 sm:text-sm md:gap-6", theme.navLinks)}>
           <a href="#projects" className={theme.navHover}>Projects</a>
           <a href="#skills" className={theme.navHover}>Skills</a>
           <a href="#experience" className={theme.navHover}>Experience</a>
@@ -361,7 +364,7 @@ export default function SuhailPortfolio() {
       </section>
 
       <section id="skills" className="px-6 py-24 md:px-10">
-        <SectionTitle theme={theme} eyebrow="Capabilities" title="AI, backend, frontend, and analytics" />
+        <SectionTitle theme={theme} eyebrow="Capabilities" title="AI, Backend, Frontend, and Analytics" />
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
           {[{ title: "AI / ML", icon: Brain, text: "Predictive modeling, NLP, classification, regression, time-series forecasting, model evaluation." }, { title: "Full Stack", icon: Code2, text: "React, Next.js, Tailwind, FastAPI, REST APIs, dashboards, deployment workflows." }, { title: "Data + Backend", icon: Database, text: "SQL, SQLite, MongoDB, JWT auth, RBAC, API integration, EDA, visualization." }].map((area) => {
             const Icon = area.icon;
