@@ -197,7 +197,7 @@ export default function SuhailPortfolio() {
       </section>
 
       <section id="projects" className="px-6 py-24 md:px-10">
-  <SectionTitle eyebrow="Selected Work" title="Project case studies" text="A focused portfolio should show outcomes, architecture, stack choices, and business value — not just repository links." />
+  <SectionTitle eyebrow="Selected Work" title="Project case studies" text="A focused portfolio should show outcomes, architecture, stack choices, and business value - not just repository links." />
 
   <div className="mx-auto mb-8 flex max-w-6xl flex-wrap justify-center gap-3">
     {categories.map((cat) => (
