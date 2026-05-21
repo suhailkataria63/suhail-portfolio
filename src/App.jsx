@@ -12,7 +12,7 @@ const profile = {
   phone: "6280208838",
   github: "https://github.com/suhailkataria63",
   linkedin: "https://linkedin.com/in/suhail-kataria63",
-  resume: "/Suhail_Resume.pdf",
+  resume: "/Suhail_1P.pdf",
   summary:
     "I build AI-powered applications, predictive models, REST APIs, dashboards, and scalable web products using Python, Golang, React, Next.js, FastAPI, SQL, and modern deployment workflows.",
 };
@@ -268,7 +268,7 @@ export default function SuhailPortfolio() {
                 <a href="#projects">View Projects <ArrowUpRight className="ml-2 h-4 w-4" /></a>
               </Button>
               <Button asChild variant="outline" className={cx("rounded-full px-6 py-6", theme.outlineButton)}>
-                <a href={profile.resume} download="Suhail_Resume.pdf">
+                <a href={profile.resume} download="Suhail_1P.pdf">
                   <Download className="mr-2 h-4 w-4" /> Resume
                 </a>
               </Button>
