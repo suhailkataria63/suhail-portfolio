@@ -14,7 +14,7 @@ const profile = {
   linkedin: "https://linkedin.com/in/suhail-kataria63",
   resume: "/Suhail_1P.pdf",
   summary:
-    "I build AI-powered applications, predictive models, REST APIs, dashboards, and scalable web products using Python, Golang, React, Next.js, FastAPI, SQL, and modern deployment workflows.",
+    "I build AI-powered web applications, LLM-integrated workflows, predictive models, REST APIs, dashboards, and scalable full-stack products using Python, FastAPI, Next.js, React, TypeScript, Golang, SQL, and modern deployment tools.",
 };
 
 const projects = [
