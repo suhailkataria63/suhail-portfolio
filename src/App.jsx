@@ -19,6 +19,17 @@ const profile = {
 
 const projects = [
   {
+    title: "InternAI Resume Analyzer",
+    type: "AI Matching Workflow",
+    description:
+  "Full-stack AI internship assistant that analyzes resumes against job descriptions, extracts skills, calculates match scores, identifies skill gaps, generates application answers and cover letters, and tracks saved applications through a polished dashboard.",
+stack: [
+  "Python","FastAPI","Next.js","Tailwind CSS","SQLite","REST APIs","Gemini API","LLM Fallbacks","Vercel"],
+    icon: Brain,
+    github: "https://github.com/suhailkataria63",
+    live: "https://intern-ai-seven.vercel.app"
+  },
+  {
     title: "Hybrid Phishing Detection System",
     type: "AI Security Platform",
     description:
@@ -37,16 +48,6 @@ const projects = [
     icon: Server,
     github: "https://github.com/suhailkataria63",
     live: "https://smart-leads-dash.vercel.app/login"
-  },
-  {
-    title: "InternAI Resume Analyzer",
-    type: "AI Matching Workflow",
-    description:
-      "Resume and job-description matching system with skill extraction, match scoring, fit-level analysis, and improvement suggestions.",
-    stack: ["Python", "FastAPI", "Next.js", "Tailwind", "SQLite", "REST APIs"],
-    icon: Brain,
-    github: "https://github.com/suhailkataria63",
-    live: ""
   },
   {
     title: "EduPro Demand Forecasting",
