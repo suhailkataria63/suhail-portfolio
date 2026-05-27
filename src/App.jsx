@@ -26,7 +26,7 @@ const projects = [
 stack: [
   "Python","FastAPI","Next.js","Tailwind CSS","SQLite","REST APIs","Gemini API","LLM Fallbacks","Vercel"],
     icon: Brain,
-    github: "https://github.com/suhailkataria63",
+    github: "https://github.com/suhailkataria63/InternAI",
     live: "https://intern-ai-seven.vercel.app"
   },
   {
