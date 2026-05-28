@@ -7,7 +7,7 @@ import { FaGithub, FaLinkedin } from "react-icons/fa";
 import WelcomeIntro from "@/components/WelcomeIntro";
 
 const profile = {
-  name: "Suhail.dev",
+  name: "Suhail Kataria",
   title: "AI & Data Science Student • Full-Stack AI Builder",
   email: "suhail.kataria63@gmail.com",
   phone: "6280208838",
@@ -246,7 +246,7 @@ export default function SuhailPortfolio() {
 
       <nav className={cx("fixed left-1/2 top-5 z-40 flex w-[92%] max-w-6xl -translate-x-1/2 items-center justify-between rounded-full border px-5 py-3 backdrop-blur-2xl", theme.nav)}>
         <a href="#home" className={cx("font-semibold tracking-wide", theme.brand)}>
-          <span className="hidden sm:inline">Suhail Kataria</span>
+          <span className="hidden sm:inline">Suhail.dev</span>
           <span className="sm:hidden">SK</span>
         </a>
         <div className={cx("flex items-center gap-2 text-[11px] sm:gap-4 sm:text-sm md:gap-6", theme.navLinks)}>
