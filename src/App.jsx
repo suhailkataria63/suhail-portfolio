@@ -23,7 +23,7 @@ const projects = [
     title: "InternAI Resume Analyzer",
     type: "AI Matching Workflow",
     description:
-  "Full-stack AI internship assistant that analyzes resumes against job descriptions, extracts skills, calculates match scores, identifies skill gaps, generates application answers and cover letters, and tracks saved applications through a polished dashboard.",
+  "Full-stack AI internship assistant that analyzes resumes against job descriptions, extracts skills, calculates match scores, identifies skill gaps, generates application answers and cover letters, and tracks saved applications.",
 stack: [
   "Python","FastAPI","Next.js","Tailwind CSS","SQLite","REST APIs","Gemini API","LLM Fallbacks","Vercel"],
     icon: Brain,
@@ -44,7 +44,7 @@ stack: [
     title: "Smart Leads Dashboard",
     type: "Full-Stack SaaS Dashboard",
     description:
-      "Lead management dashboard with authentication, RBAC, CRUD operations, search, filtering, pagination, CSV export, and responsive UI.",
+      "Full-stack lead management dashboard with authentication, RBAC, CRUD operations, search, filtering, pagination, CSV export, and a responsive analytics-focused UI.",
     stack: ["React", "TypeScript", "Node.js", "Express", "MongoDB", "JWT", "Render"],
     icon: Server,
     github: "https://github.com/suhailkataria63",
@@ -312,7 +312,7 @@ export default function SuhailPortfolio() {
       </section>
 
       <section id="projects" className="px-6 py-24 md:px-10">
-        <SectionTitle theme={theme} eyebrow="Selected Work" title="Project case studies" text="A focused portfolio should show outcomes, architecture, stack choices, and business value - not just repository links." />
+        <SectionTitle theme={theme} eyebrow="Selected Work" title="Project case studies" text="Selected projects showing outcomes, architecture, stack choices, and real-world value — not just repository links." />
 
         <div className="mx-auto mb-8 flex max-w-6xl flex-wrap justify-center gap-3">
           {categories.map((cat) => (
