@@ -1,12 +1,13 @@
-import React, { useMemo, useState } from "react";
-import { motion, useScroll, useSpring } from "framer-motion";
+import React, { useCallback, useMemo, useState } from "react";
+import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import { Mail, ExternalLink, ArrowUpRight, Sparkles, Brain, Server, BarChart3, ShieldCheck, Code2, Database, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import WelcomeIntro from "@/components/WelcomeIntro";
 
 const profile = {
-  name: "Suhail Kataria",
+  name: "Suhail.dev",
   title: "AI & Data Science Student • Full-Stack AI Builder",
   email: "suhail.kataria63@gmail.com",
   phone: "6280208838",
@@ -213,6 +214,8 @@ function FloatingOrb({ className }) {
 }
 
 export default function SuhailPortfolio() {
+  const [introDone, setIntroDone] = useState(false);
+  const finishIntro = useCallback(() => setIntroDone(true), []);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 110, damping: 28, restDelta: 0.001 });
   const [filter, setFilter] = useState("All");
@@ -228,7 +231,17 @@ export default function SuhailPortfolio() {
   });
 
   return (
-    <main className={cx("min-h-screen overflow-hidden transition-colors duration-500", theme.main)}>
+    <AnimatePresence mode="wait">
+      {!introDone ? (
+        <WelcomeIntro key="welcome-intro" onFinish={finishIntro} />
+      ) : (
+        <motion.main
+          key="portfolio-dashboard"
+          className={cx("min-h-screen overflow-hidden transition-colors duration-500", theme.main)}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
       <motion.div style={{ scaleX }} className={cx("fixed left-0 top-0 z-50 h-1 w-full origin-left", theme.progress)} />
 
       <nav className={cx("fixed left-1/2 top-5 z-40 flex w-[92%] max-w-6xl -translate-x-1/2 items-center justify-between rounded-full border px-5 py-3 backdrop-blur-2xl", theme.nav)}>
@@ -419,6 +432,8 @@ export default function SuhailPortfolio() {
           </div>
         </motion.div>
       </section>
-    </main>
+        </motion.main>
+      )}
+    </AnimatePresence>
   );
 }
