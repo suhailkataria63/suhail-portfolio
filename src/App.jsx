@@ -93,7 +93,7 @@ const education = [
     university: "IKGPTU",
     period: "2024 – 2027",
     points: [
-      "Currently in 3rd Year, 6th Semester.",
+      "Currently in 4th Year, 7th Semester.",
       "Focused on machine learning, data science, web development, backend APIs, and AI-powered applications.",
       "Built practical projects in RAG, phishing detection, forecasting, full-stack dashboards, and backend authentication systems.",
     ],
@@ -413,7 +413,7 @@ export default function SuhailPortfolio() {
       </section>
 
       <section id="skills" className="px-6 py-24 md:px-10">
-        <SectionTitle theme={theme} eyebrow="Capabilities" title="AI, Backend, Frontend, and Analytics" />
+        <SectionTitle theme={theme} eyebrow="Capabilities" title="AI, Backend, Frontend, and Analytics." />
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
           {[{ title: "AI / ML", icon: Brain, text: "Predictive modeling, NLP, classification, regression, time-series forecasting, model evaluation." }, { title: "Full Stack", icon: Code2, text: "React, Next.js, Tailwind, FastAPI, REST APIs, dashboards, deployment workflows." }, { title: "Data + Backend", icon: Database, text: "SQL, SQLite, MongoDB, JWT auth, RBAC, API integration, EDA, visualization." }].map((area) => {
             const Icon = area.icon;
