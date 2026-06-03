@@ -284,6 +284,7 @@ export default function SuhailPortfolio() {
           {skills.map((skill) => <motion.span whileHover={{ y: -4 }} key={skill} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">{skill}</motion.span>)}
         </div>
       </section>
+      
 
       <section id="experience" className="px-6 py-24 md:px-10">
         <SectionTitle eyebrow="Experience" title="Training and Practical execution" />

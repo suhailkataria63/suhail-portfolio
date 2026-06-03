@@ -86,6 +86,40 @@ const skills = [
   "Python", "Golang", "SQL", "JavaScript", "TypeScript", "React.js", "Next.js", "Tailwind CSS", "FastAPI", "Node.js", "Express.js", "MongoDB", "SQLite", "JWT", "RBAC", "Pandas", "NumPy", "Scikit-learn", "TensorFlow/Keras", "Streamlit", "Hugging Face", "Vercel", "GitHub"
 ];
 
+const education = [
+  {
+    degree: "B.Tech in Artificial Intelligence & Data Science",
+    institute: "Chandigarh Group of Colleges, Landran",
+    university: "IKGPTU",
+    period: "2024 – 2027",
+    points: [
+      "Currently in 3rd Year, 6th Semester.",
+      "Focused on machine learning, data science, web development, backend APIs, and AI-powered applications.",
+      "Built practical projects in RAG, phishing detection, forecasting, full-stack dashboards, and backend authentication systems.",
+    ],
+  },
+  {
+    degree: "Diploma in Computer Science & Engineering",
+    institute: "Mehr Chand Polytechnic College, Jalandhar",
+    university: "PSBTE",
+    period: "2021 – 2024",
+    points: [
+      "Completed diploma with a focus on computer fundamentals and programming.",
+      "Developed strong foundational skills in software development and problem-solving.",
+    ],
+  },
+  {
+  degree: "Matriculation (10th Standard)",
+  institute: "Jawahar Navodaya Vidyalaya",
+  university: "CBSE",
+  period: "2021",
+  points: [
+    "Completed secondary education under the CBSE curriculum.",
+    "Built a strong academic foundation in mathematics, science, and computer fundamentals.",
+    ],
+  }
+];
+
 const experience = [
   {
     role: "Artificial Intelligence Intern",
@@ -252,6 +286,7 @@ export default function SuhailPortfolio() {
         <div className={cx("flex items-center gap-2 text-[11px] sm:gap-4 sm:text-sm md:gap-6", theme.navLinks)}>
           <a href="#projects" className={theme.navHover}>Projects</a>
           <a href="#skills" className={theme.navHover}>Skills</a>
+          <a href="#education" className={theme.navHover}>Education</a>
           <a href="#experience" className={theme.navHover}>Experience</a>
           <a href="#contact" className={theme.navHover}>Contact</a>
           <button
@@ -397,6 +432,45 @@ export default function SuhailPortfolio() {
         </div>
         <div className="mx-auto mt-10 flex max-w-6xl flex-wrap justify-center gap-3">
           {skills.map((skill) => <motion.span whileHover={{ y: -4 }} key={skill} className={cx("rounded-full border px-4 py-2 text-sm", theme.skillTag)}>{skill}</motion.span>)}
+        </div>
+      </section>
+
+            <section id="education" className="px-6 py-24 md:px-10">
+        <SectionTitle
+          theme={theme}
+          eyebrow="Education"
+          title="Academic background"
+          text="A foundation in AI, data science, software development, and applied problem solving."
+        />
+
+        <div className="mx-auto max-w-4xl space-y-5">
+          {education.map((item) => (
+            <motion.div
+              key={item.degree}
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className={cx("rounded-[1.5rem] border p-6", theme.experienceCard)}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className={cx("text-xl font-bold", theme.cardTitle)}>{item.degree}</h3>
+                  <p className={theme.projectType}>{item.institute}</p>
+                  <p className={cx("mt-1 text-sm", theme.bodyText)}>{item.university}</p>
+                </div>
+                <span className={cx("rounded-full px-3 py-1 text-sm", theme.periodPill)}>
+                  {item.period}
+                </span>
+              </div>
+
+              <ul className={cx("mt-4 space-y-2 text-sm leading-6", theme.bodyText)}>
+                {item.points.map((point) => (
+                  <li key={point}>• {point}</li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
         </div>
       </section>
 
