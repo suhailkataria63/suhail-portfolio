@@ -13,7 +13,7 @@ const profile = {
   phone: "6280208838",
   github: "https://github.com/suhailkataria63",
   linkedin: "https://linkedin.com/in/suhail-kataria63",
-  resume: "/Suhail_1P.pdf",
+  resume: "/Suhail_Kataria_Resume.pdf",
   summary:
     "I build AI-powered web applications, LLM-integrated workflows, predictive models, REST APIs, dashboards, and scalable full-stack products using Python, FastAPI, Next.js, React, TypeScript, Golang, SQL, and modern deployment tools.",
 };
