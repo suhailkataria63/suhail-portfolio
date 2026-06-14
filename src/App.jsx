@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
-import { Mail, ExternalLink, ArrowUpRight, Sparkles, Brain, Server, BarChart3, ShieldCheck, Code2, Database, Download } from "lucide-react";
+import { Mail, ExternalLink, ArrowUpRight, Sparkles, Brain, Server, BarChart3, ShieldCheck, Code2, Database, Download, Bot } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
@@ -39,6 +39,16 @@ stack: [
     icon: ShieldCheck,
     github: "https://github.com/suhailkataria63/Phishing-Detection-with-Hybrid-AI-models",
     live: "https://phishing-detection-with-hybrid-ai-m.vercel.app"
+  },
+  {
+    title: "Social Video RAG Chatbot",
+    type: "AI Video Intelligence Platform",
+    description:
+      "RAG chatbot for YouTube and Instagram videos with transcript ingestion, ChromaDB vector search, metadata-aware retrieval, citation-backed answers, and streaming chat.",
+    stack: ["Python", "FastAPI", "LangChain", "ChromaDB", "Gemini API", "Ollama", "Next.js", "TypeScript", "Vercel"],
+    icon: Bot,
+    github: "https://github.com/suhailkataria63/techsolv-chatbot",
+    live: "https://social-rag-chatbot.vercel.app/"
   },
   {
     title: "Smart Leads Dashboard",
