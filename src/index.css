@@ -81,9 +81,43 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --page-bg:
+      radial-gradient(circle at 75% 25%, rgba(125, 211, 252, 0.55), transparent 34%),
+      radial-gradient(circle at 15% 20%, rgba(191, 219, 254, 0.75), transparent 38%),
+      linear-gradient(135deg, #eff6ff 0%, #dbeafe 45%, #eef2ff 100%);
+    --text-main: #020617;
+    --text-muted: #334155;
+    --nav-bg: rgba(241, 245, 249, 0.72);
+    --nav-border: rgba(255, 255, 255, 0.85);
+    --card-bg:
+      linear-gradient(145deg, rgba(255,255,255,0.72), rgba(219,234,254,0.58));
+    --card-border: rgba(255,255,255,0.85);
+    --card-shadow: 0 24px 80px rgba(59, 130, 246, 0.22);
+    --pill-bg: rgba(255,255,255,0.72);
+    --pill-border: rgba(96,165,250,0.38);
 }
 
-.dark {
+:root,
+[data-theme="light"] {
+    --page-bg:
+      radial-gradient(circle at 75% 25%, rgba(125, 211, 252, 0.55), transparent 34%),
+      radial-gradient(circle at 15% 20%, rgba(191, 219, 254, 0.75), transparent 38%),
+      linear-gradient(135deg, #eff6ff 0%, #dbeafe 45%, #eef2ff 100%);
+    --text-main: #020617;
+    --text-muted: #334155;
+    --nav-bg: rgba(241, 245, 249, 0.72);
+    --nav-border: rgba(255, 255, 255, 0.85);
+    --card-bg:
+      linear-gradient(145deg, rgba(255,255,255,0.72), rgba(219,234,254,0.58));
+    --card-border: rgba(255,255,255,0.85);
+    --card-shadow: 0 24px 80px rgba(59, 130, 246, 0.22);
+    --pill-bg: rgba(255,255,255,0.72);
+    --pill-border: rgba(96,165,250,0.38);
+}
+
+.dark,
+html.dark,
+[data-theme="dark"] {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
@@ -115,6 +149,21 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --page-bg:
+      radial-gradient(circle at 82% 72%, rgba(88, 28, 135, 0.62), transparent 36%),
+      radial-gradient(circle at 10% 35%, rgba(8, 145, 178, 0.35), transparent 32%),
+      radial-gradient(circle at 62% 20%, rgba(30, 41, 59, 0.55), transparent 38%),
+      linear-gradient(135deg, #020617 0%, #050816 48%, #140b2d 100%);
+    --text-main: #f8fafc;
+    --text-muted: #cbd5e1;
+    --nav-bg: rgba(15, 23, 42, 0.72);
+    --nav-border: rgba(148, 163, 184, 0.22);
+    --card-bg:
+      linear-gradient(145deg, rgba(15,23,42,0.78), rgba(88,28,135,0.42));
+    --card-border: rgba(148, 163, 184, 0.24);
+    --card-shadow: 0 28px 100px rgba(88, 28, 135, 0.42);
+    --pill-bg: rgba(15,23,42,0.62);
+    --pill-border: rgba(34,211,238,0.38);
 }
 
 @layer base {
@@ -127,4 +176,849 @@
   html {
     @apply font-sans;
     }
+}
+
+/* === High-end 3D portfolio background === */
+html {
+  scroll-behavior: smooth;
+  background: var(--page-bg);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--page-bg);
+  color: var(--text-main);
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(103, 232, 249, 0.32);
+  color: white;
+}
+
+.portfolio-3d-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100svh;
+  min-height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 68% 34%, rgba(34, 211, 238, 0.16), transparent 30rem),
+    radial-gradient(circle at 84% 72%, rgba(168, 85, 247, 0.2), transparent 34rem),
+    radial-gradient(circle at 13% 54%, rgba(59, 130, 246, 0.12), transparent 32rem),
+    linear-gradient(135deg, #020617 0%, #070019 46%, #13002d 100%);
+  transition: opacity 350ms ease, filter 350ms ease, background 350ms ease;
+}
+
+.portfolio-3d-bg--dark {
+  background:
+    radial-gradient(circle at 70% 36%, rgba(34, 211, 238, 0.12), transparent 26rem),
+    radial-gradient(circle at 88% 72%, rgba(192, 132, 252, 0.26), transparent 34rem),
+    radial-gradient(circle at 18% 48%, rgba(59, 130, 246, 0.12), transparent 32rem),
+    linear-gradient(135deg, #01030b 0%, #050016 42%, #13002f 72%, #050010 100%);
+}
+
+.portfolio-3d-bg canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  z-index: 2;
+}
+
+.portfolio-3d-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.3;
+  background-image:
+    linear-gradient(rgba(125, 211, 252, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.045) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(circle at 70% 48%, black 0%, transparent 72%);
+}
+
+.portfolio-3d-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(1, 3, 14, 0.94) 0%, rgba(8, 3, 30, 0.68) 38%, rgba(20, 3, 42, 0.2) 100%),
+    radial-gradient(circle at 65% 46%, transparent 0%, rgba(30, 10, 68, 0.24) 48%, rgba(1, 3, 14, 0.86) 100%);
+}
+
+.portfolio-3d-bg--light {
+  background:
+    radial-gradient(circle at 70% 36%, rgba(8, 145, 178, 0.34), transparent 28rem),
+    radial-gradient(circle at 86% 72%, rgba(67, 56, 202, 0.28), transparent 34rem),
+    radial-gradient(circle at 12% 55%, rgba(30, 64, 175, 0.24), transparent 32rem),
+    linear-gradient(135deg, #94a3b8 0%, #bfdbfe 34%, #a5b4fc 68%, #8ea4d9 100%);
+}
+
+.portfolio-3d-bg--light::before {
+  opacity: 0.58;
+  background-image:
+    linear-gradient(rgba(30, 64, 175, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 64, 175, 0.16) 1px, transparent 1px);
+}
+
+.portfolio-3d-bg--light::after {
+  background:
+    linear-gradient(90deg, rgba(226, 232, 240, 0.18) 0%, rgba(191, 219, 254, 0.08) 42%, rgba(30, 64, 175, 0.1) 100%),
+    radial-gradient(circle at 65% 46%, transparent 0%, rgba(37, 99, 235, 0.1) 50%, rgba(15, 23, 42, 0.22) 100%);
+}
+
+.portfolio-3d-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.portfolio-3d-overlay--light {
+  background:
+    linear-gradient(90deg, rgba(226, 232, 240, 0.1) 0%, rgba(191, 219, 254, 0.04) 45%, rgba(67, 56, 202, 0.04) 100%),
+    radial-gradient(circle at 70% 48%, transparent 0%, rgba(59, 130, 246, 0.06) 54%, rgba(15, 23, 42, 0.14) 100%);
+}
+.portfolio-3d-bg--dark .portfolio-3d-overlay {
+  background:
+    linear-gradient(90deg, rgba(1, 3, 14, 0.2) 0%, rgba(36, 12, 82, 0.08) 48%, rgba(2, 6, 23, 0.14) 100%),
+    radial-gradient(circle at 64% 45%, transparent 0%, rgba(88, 28, 135, 0.08) 50%, rgba(2, 6, 23, 0.34) 100%);
+}
+
+.portfolio-3d-bg--dark .portfolio-3d-nebula {
+  opacity: 0.6;
+  background:
+    radial-gradient(circle at 74% 26%, rgba(103, 232, 249, 0.16), transparent 22rem),
+    radial-gradient(circle at 86% 68%, rgba(217, 70, 239, 0.18), transparent 27rem),
+    radial-gradient(circle at 46% 18%, rgba(99, 102, 241, 0.11), transparent 20rem);
+}
+
+.portfolio-3d-bg--light .portfolio-3d-nebula {
+  opacity: 0.24;
+}
+
+
+.portfolio-3d-nebula,
+.portfolio-3d-aurora,
+.portfolio-3d-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.portfolio-3d-nebula {
+  z-index: 3;
+  opacity: 0.42;
+  background:
+    radial-gradient(circle at 76% 25%, rgba(125, 211, 252, 0.16), transparent 24rem),
+    radial-gradient(circle at 88% 72%, rgba(192, 132, 252, 0.14), transparent 26rem);
+  mix-blend-mode: screen;
+}
+
+.portfolio-3d-aurora {
+  z-index: 3;
+  opacity: 0.26;
+  background: linear-gradient(115deg, transparent 12%, rgba(34, 211, 238, 0.16) 38%, transparent 58%, rgba(168, 85, 247, 0.14) 82%, transparent 100%);
+  filter: blur(30px);
+  transform: translate3d(0, 0, 0);
+  animation: portfolioAuroraFlow 18s ease-in-out infinite alternate;
+}
+
+.portfolio-3d-vignette {
+  z-index: 6;
+  background: radial-gradient(circle at center, transparent 0%, transparent 42%, rgba(2, 6, 23, 0.72) 100%);
+}
+
+.portfolio-3d-bg--light .portfolio-3d-vignette {
+  background: radial-gradient(circle at center, transparent 0%, transparent 50%, rgba(15, 23, 42, 0.2) 100%);
+}
+
+main,
+section,
+nav,
+header {
+  position: relative;
+}
+
+main > *:not(.portfolio-3d-bg) {
+  position: relative;
+  z-index: 10;
+}
+
+nav {
+  z-index: 9999 !important;
+}
+
+@keyframes portfolioAuroraFlow {
+  0% {
+    transform: translateX(-3%) translateY(1%) rotate(-1deg);
+  }
+  100% {
+    transform: translateX(3%) translateY(-1%) rotate(1deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .portfolio-3d-bg {
+    opacity: 0.82;
+  }
+
+  .portfolio-3d-aurora {
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .portfolio-3d-bg::before {
+    opacity: 0.22;
+  }
+}
+
+.portfolio-card-light,
+.portfolio-card-dark {
+  position: relative;
+  isolation: isolate;
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  box-shadow: var(--card-shadow) !important;
+  backdrop-filter: blur(22px);
+}
+
+.portfolio-card-light::before,
+.portfolio-card-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.portfolio-card-light::before {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(219, 234, 254, 0.18) 42%, rgba(199, 210, 254, 0.22)),
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.82), transparent 36%);
+}
+
+.portfolio-card-dark::before {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.10), transparent 38%),
+    radial-gradient(circle at 100% 100%, rgba(217, 70, 239, 0.16), transparent 40%);
+}
+
+[data-theme="light"] .glass-card,
+[data-theme="light"] .portfolio-card-light {
+  background: linear-gradient(145deg, rgba(255,255,255,0.78), rgba(219,234,254,0.62)) !important;
+  border-color: rgba(255,255,255,0.9) !important;
+  box-shadow: 0 24px 70px rgba(59,130,246,0.2) !important;
+}
+
+[data-theme="dark"] .glass-card,
+html.dark .glass-card,
+[data-theme="dark"] .portfolio-card-dark,
+html.dark .portfolio-card-dark {
+  background:
+    linear-gradient(145deg, rgba(15,23,42,0.82), rgba(88,28,135,0.46)),
+    radial-gradient(circle at top left, rgba(34,211,238,0.18), transparent 38%) !important;
+  border-color: rgba(148,163,184,0.25) !important;
+  box-shadow:
+    0 28px 90px rgba(88,28,135,0.42),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+
+/* === Final portfolio theme authority === */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body[data-theme="light"] {
+  background: #f8fbff !important;
+}
+
+body[data-theme="dark"] {
+  background: #030712 !important;
+}
+
+.portfolio-app.theme-light {
+  --page-bg:
+    radial-gradient(circle at 75% 25%, rgba(96, 165, 250, 0.18), transparent 34%),
+    radial-gradient(circle at 20% 15%, rgba(219, 234, 254, 0.9), transparent 40%),
+    linear-gradient(135deg, #ffffff 0%, #eff6ff 45%, #eaf2ff 100%);
+
+  --text-main: #020617;
+  --text-muted: #334155;
+  --accent-main: #2563eb;
+  --accent-soft: #38bdf8;
+
+  --nav-bg: rgba(255, 255, 255, 0.72);
+  --nav-border: rgba(255, 255, 255, 0.92);
+
+  --card-bg: linear-gradient(145deg, rgba(255,255,255,0.84), rgba(219,234,254,0.62));
+  --card-border: rgba(255,255,255,0.9);
+  --card-shadow: 0 24px 80px rgba(37,99,235,0.18);
+
+  --button-primary-bg: linear-gradient(135deg, #38bdf8, #2563eb);
+  --button-primary-text: #ffffff;
+  --button-secondary-bg: rgba(255,255,255,0.75);
+  --button-secondary-text: #020617;
+}
+
+.portfolio-app.theme-dark {
+  --page-bg:
+    radial-gradient(circle at 82% 72%, rgba(88, 28, 135, 0.55), transparent 36%),
+    radial-gradient(circle at 12% 35%, rgba(8, 145, 178, 0.22), transparent 30%),
+    linear-gradient(135deg, #030712 0%, #050816 45%, #160726 100%);
+
+  --text-main: #f8fafc;
+  --text-muted: #cbd5e1;
+  --accent-main: #67e8f9;
+  --accent-soft: #c084fc;
+
+  --nav-bg: rgba(15, 23, 42, 0.76);
+  --nav-border: rgba(148, 163, 184, 0.24);
+
+  --card-bg:
+    radial-gradient(circle at top left, rgba(34,211,238,0.16), transparent 36%),
+    linear-gradient(145deg, rgba(15,23,42,0.84), rgba(88,28,135,0.48));
+  --card-border: rgba(148,163,184,0.28);
+  --card-shadow: 0 28px 100px rgba(88,28,135,0.42);
+
+  --button-primary-bg: linear-gradient(135deg, #67e8f9, #c084fc);
+  --button-primary-text: #020617;
+  --button-secondary-bg: rgba(15,23,42,0.72);
+  --button-secondary-text: #f8fafc;
+}
+
+.portfolio-app {
+  min-height: 100vh;
+  background: var(--page-bg) !important;
+  color: var(--text-main) !important;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg {
+  background: #eef7ff !important;
+  opacity: 0.72;
+  filter: saturate(1.05) contrast(1.02) brightness(1.08);
+}
+
+.portfolio-app.theme-dark .portfolio-3d-bg {
+  background: #030712 !important;
+  opacity: 1;
+  filter: saturate(1.28) contrast(1.12) brightness(0.92);
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg canvas {
+  opacity: 1 !important;
+  mix-blend-mode: normal;
+}
+
+.portfolio-app.theme-dark .portfolio-3d-bg canvas {
+  opacity: 1 !important;
+  mix-blend-mode: normal;
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg::after,
+.portfolio-app.theme-light .portfolio-3d-overlay,
+.portfolio-app.theme-light .portfolio-3d-vignette {
+  background:
+    linear-gradient(90deg, rgba(248, 251, 255, 0.68), rgba(239, 246, 255, 0.28), rgba(234, 242, 255, 0.16)) !important;
+}
+
+.portfolio-app.theme-dark .portfolio-3d-bg::after,
+.portfolio-app.theme-dark .portfolio-3d-overlay,
+.portfolio-app.theme-dark .portfolio-3d-vignette {
+  background:
+    linear-gradient(90deg, rgba(2, 3, 10, 0.97) 0%, rgba(5, 8, 22, 0.72) 42%, rgba(22, 7, 38, 0.42) 100%),
+    radial-gradient(circle at 68% 48%, transparent 0%, rgba(88, 28, 135, 0.24) 48%, rgba(2, 3, 10, 0.9) 100%) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-nebula,
+.portfolio-app.theme-light .portfolio-3d-aurora {
+  opacity: 0.12 !important;
+}
+
+.portfolio-app.theme-dark .portfolio-3d-nebula,
+.portfolio-app.theme-dark .portfolio-3d-aurora {
+  opacity: 0.44 !important;
+}
+
+.portfolio-app .portfolio-nav,
+.portfolio-app nav,
+.portfolio-app header {
+  background: var(--nav-bg) !important;
+  border: 1px solid var(--nav-border) !important;
+  backdrop-filter: blur(22px);
+}
+
+.portfolio-app .glass-card,
+.portfolio-app .profile-card,
+.portfolio-app .project-card,
+.portfolio-app .education-card,
+.portfolio-app .experience-card,
+.portfolio-app .skill-card,
+.portfolio-app .portfolio-card-light,
+.portfolio-app .portfolio-card-dark {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: var(--card-shadow) !important;
+  color: var(--text-main) !important;
+  backdrop-filter: blur(24px);
+}
+
+.portfolio-app p,
+.portfolio-app .text-muted,
+.portfolio-app .subtitle {
+  color: var(--text-muted);
+}
+
+.portfolio-app .accent,
+.portfolio-app .section-kicker {
+  color: var(--accent-main);
+}
+
+.portfolio-app .primary-btn,
+.portfolio-app .btn-primary,
+.portfolio-app .view-projects-btn {
+  background: var(--button-primary-bg) !important;
+  color: var(--button-primary-text) !important;
+}
+
+.portfolio-app .secondary-btn,
+.portfolio-app .btn-secondary,
+.portfolio-app .resume-btn {
+  background: var(--button-secondary-bg) !important;
+  color: var(--button-secondary-text) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+
+/* === Light-mode 3D visibility + cleaner sticky nav fix === */
+.portfolio-app.theme-light .portfolio-3d-bg.portfolio-3d-bg--light {
+  background:
+    radial-gradient(ellipse at 73% 38%, rgba(14, 165, 233, 0.46), transparent 27rem),
+    radial-gradient(ellipse at 87% 70%, rgba(79, 70, 229, 0.30), transparent 33rem),
+    radial-gradient(circle at 12% 54%, rgba(125, 211, 252, 0.26), transparent 30rem),
+    linear-gradient(135deg, #f6fbff 0%, #dff2ff 44%, #dfe7ff 74%, #f8fbff 100%) !important;
+  opacity: 1 !important;
+  filter: saturate(1.38) contrast(1.12) brightness(1) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg.portfolio-3d-bg--light canvas {
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  filter: saturate(1.52) contrast(1.18) brightness(0.98) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg.portfolio-3d-bg--light::after {
+  background:
+    linear-gradient(90deg, rgba(248,251,255,0.38) 0%, rgba(248,251,255,0.18) 34%, rgba(248,251,255,0.03) 66%, rgba(219,234,254,0.04) 100%),
+    radial-gradient(circle at 70% 45%, transparent 0%, transparent 48%, rgba(30,64,175,0.08) 100%) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-overlay {
+  background:
+    radial-gradient(circle at 72% 48%, rgba(14,165,233,0.04), transparent 48%),
+    linear-gradient(90deg, rgba(248,251,255,0.18), transparent 42%, rgba(79,70,229,0.03)) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-vignette,
+.portfolio-app.theme-light .portfolio-hyperreal__vignette {
+  background: radial-gradient(circle at center, transparent 0%, transparent 68%, rgba(29,78,216,0.075) 100%) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-nebula,
+.portfolio-app.theme-light .portfolio-3d-aurora,
+.portfolio-app.theme-light .portfolio-hyperreal__aurora {
+  opacity: 0.24 !important;
+}
+
+.portfolio-app .portfolio-nav {
+  z-index: 60 !important;
+}
+
+
+/* === Minimal wave background final fixes ===
+   This block intentionally comes last so it beats older Tailwind/final theme rules.
+   It fixes light-mode visibility, removes the old sphere-heavy washout, and makes
+   the navbar scroll naturally with the page instead of staying fixed. */
+.portfolio-app {
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+.portfolio-app .portfolio-nav {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  margin: 1.25rem auto 0 !important;
+}
+
+.portfolio-app.theme-light {
+  --page-bg:
+    radial-gradient(circle at 12% 26%, rgba(186, 230, 253, 0.72), transparent 34rem),
+    radial-gradient(circle at 82% 78%, rgba(191, 219, 254, 0.9), transparent 39rem),
+    linear-gradient(135deg, #ffffff 0%, #f7fcff 46%, #edf7ff 100%) !important;
+  background: var(--page-bg) !important;
+}
+
+.portfolio-app.theme-dark {
+  --page-bg:
+    radial-gradient(circle at 14% 42%, rgba(8, 145, 178, 0.18), transparent 32rem),
+    radial-gradient(circle at 82% 78%, rgba(88, 28, 135, 0.46), transparent 39rem),
+    linear-gradient(135deg, #020617 0%, #050816 48%, #12051f 100%) !important;
+  background: var(--page-bg) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg,
+.portfolio-app.theme-light .portfolio-3d-bg--minimal {
+  opacity: 1 !important;
+  filter: none !important;
+  background:
+    radial-gradient(circle at 16% 24%, rgba(186, 230, 253, 0.55), transparent 29rem),
+    radial-gradient(circle at 78% 74%, rgba(59, 130, 246, 0.18), transparent 38rem),
+    radial-gradient(circle at 54% 92%, rgba(6, 182, 212, 0.16), transparent 35rem),
+    linear-gradient(135deg, #ffffff 0%, #f7fcff 48%, #eef7ff 100%) !important;
+}
+
+.portfolio-app.theme-dark .portfolio-3d-bg,
+.portfolio-app.theme-dark .portfolio-3d-bg--minimal {
+  opacity: 1 !important;
+  filter: saturate(1.12) contrast(1.08) !important;
+  background:
+    radial-gradient(circle at 13% 46%, rgba(8, 145, 178, 0.2), transparent 31rem),
+    radial-gradient(circle at 83% 78%, rgba(88, 28, 135, 0.52), transparent 38rem),
+    radial-gradient(circle at 56% 90%, rgba(30, 64, 175, 0.18), transparent 33rem),
+    linear-gradient(135deg, #020617 0%, #040816 50%, #13051f 100%) !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg::after,
+.portfolio-app.theme-light .portfolio-3d-overlay,
+.portfolio-app.theme-light .portfolio-3d-vignette {
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.22) 45%, rgba(255,255,255,0.06) 100%),
+    radial-gradient(ellipse at 63% 76%, transparent 0%, rgba(125, 211, 252, 0.1) 42%, rgba(255,255,255,0.26) 100%) !important;
+  opacity: 1 !important;
+}
+
+.portfolio-app.theme-dark .portfolio-3d-bg::after,
+.portfolio-app.theme-dark .portfolio-3d-overlay,
+.portfolio-app.theme-dark .portfolio-3d-vignette {
+  background:
+    linear-gradient(90deg, rgba(2, 6, 23, 0.9) 0%, rgba(2, 6, 23, 0.55) 42%, rgba(20, 5, 33, 0.24) 100%),
+    radial-gradient(ellipse at 62% 75%, transparent 0%, rgba(88, 28, 135, 0.16) 46%, rgba(2, 6, 23, 0.78) 100%) !important;
+  opacity: 1 !important;
+}
+
+.portfolio-app.theme-light .portfolio-3d-bg::before {
+  opacity: 0.72 !important;
+}
+
+.portfolio-app.theme-dark .portfolio-3d-bg::before {
+  opacity: 0.32 !important;
+}
+
+
+
+/* === FINAL minimal animated wave-grid background + sticky navbar fix === */
+.portfolio-app {
+  background: transparent !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+.portfolio-app.theme-light {
+  background: transparent !important;
+}
+
+.portfolio-app.theme-dark {
+  background: transparent !important;
+}
+
+.portfolio-app .wave-grid-background {
+  opacity: 1 !important;
+  filter: none !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.portfolio-app.theme-light .wave-grid-background {
+  background:
+    radial-gradient(circle at 16% 30%, rgba(125, 211, 252, 0.24), transparent 30%),
+    radial-gradient(circle at 86% 74%, rgba(129, 140, 248, 0.18), transparent 34%),
+    linear-gradient(135deg, #f8fcff 0%, #eff7ff 48%, #eef2ff 100%) !important;
+}
+
+.portfolio-app.theme-dark .wave-grid-background {
+  background:
+    radial-gradient(circle at 14% 34%, rgba(8, 145, 178, 0.18), transparent 30%),
+    radial-gradient(circle at 88% 72%, rgba(88, 28, 135, 0.38), transparent 38%),
+    linear-gradient(135deg, #020617 0%, #050816 48%, #120722 100%) !important;
+}
+
+/* The nav should follow the page while scrolling, without being permanently fixed to the viewport. */
+.portfolio-app .portfolio-nav {
+  position: sticky !important;
+  top: 1.25rem !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  z-index: 50 !important;
+}
+
+/* Keep content safely above the animated canvas. */
+.portfolio-app > section,
+.portfolio-app > nav,
+.portfolio-app > footer,
+.portfolio-app > div:not(.wave-grid-background) {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* === FINAL PATCH: visible animated wave-grid + navbar follows scroll ===
+   These rules intentionally come last to beat older experimental background/navbar rules. */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden !important;
+}
+
+.portfolio-app {
+  min-height: 100vh !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  background: transparent !important;
+  isolation: isolate;
+}
+
+.portfolio-app.theme-light,
+body[data-theme="light"] {
+  background: #f8fcff !important;
+}
+
+.portfolio-app.theme-dark,
+body[data-theme="dark"] {
+  background: #020617 !important;
+}
+
+/* Keep the generated canvas visible behind all content in both modes. */
+.portfolio-app .wave-grid-background.animated-grid-background {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  pointer-events: none !important;
+}
+
+.portfolio-app .animated-grid-background__canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  opacity: 1 !important;
+}
+
+/* All portfolio content sits above the background canvas. */
+.portfolio-app > section,
+.portfolio-app > footer,
+.portfolio-app > .portfolio-nav,
+.portfolio-app > div:not(.wave-grid-background) {
+  position: relative;
+  z-index: 2;
+}
+
+/* The navbar follows the viewport as you scroll. */
+.portfolio-app .portfolio-nav {
+  position: fixed !important;
+  top: 1.25rem !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+  margin: 0 !important;
+  z-index: 60 !important;
+}
+
+/* Avoid the fixed navbar covering anchor targets. */
+section[id] {
+  scroll-margin-top: 7.5rem;
+}
+
+@media (max-width: 640px) {
+  .portfolio-app .portfolio-nav {
+    top: 0.75rem !important;
+    width: calc(100vw - 1.5rem) !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  section[id] {
+    scroll-margin-top: 6.25rem;
+  }
+}
+
+
+/* === 2026 final polish: centered fixed nav + professional theme-aware wave grid === */
+.portfolio-app {
+  min-height: 100vh !important;
+  overflow-x: hidden !important;
+  background: transparent !important;
+}
+
+.portfolio-app .portfolio-nav {
+  position: fixed !important;
+  top: max(1rem, env(safe-area-inset-top)) !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  width: min(92vw, 72rem) !important;
+  max-width: 72rem !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+  transform: none !important;
+  z-index: 80 !important;
+  box-sizing: border-box !important;
+}
+
+.portfolio-app.theme-dark .portfolio-nav {
+  background: rgba(15, 23, 42, 0.74) !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34) !important;
+}
+
+.portfolio-app.theme-light .portfolio-nav {
+  background: rgba(255, 255, 255, 0.76) !important;
+  border-color: rgba(255, 255, 255, 0.88) !important;
+  box-shadow: 0 18px 60px rgba(37, 99, 235, 0.12) !important;
+}
+
+.portfolio-app .professional-wave-background,
+.portfolio-app .wave-grid-background.professional-wave-background {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100svh !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  transform: none !important;
+  filter: none !important;
+  background: transparent !important;
+}
+
+.portfolio-app .professional-wave-background canvas {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+}
+
+.portfolio-app > section,
+.portfolio-app > footer {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.portfolio-app > nav {
+  z-index: 80 !important;
+}
+
+section[id] {
+  scroll-margin-top: 7rem !important;
+}
+
+@media (max-width: 768px) {
+  .portfolio-app .portfolio-nav {
+    top: 0.75rem !important;
+    width: calc(100vw - 1.5rem) !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  section[id] {
+    scroll-margin-top: 6.25rem !important;
+  }
+}
+
+
+/* === Merge safety layer: keep nav click targets clean after adding portfolio-3d design === */
+.portfolio-app .portfolio-nav a,
+.portfolio-app .portfolio-nav button {
+  position: relative;
+  z-index: 1;
+}
+/* === Performance + visible scroll progress fix === */
+.portfolio-scroll-progress {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 3px !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+  transform-origin: 0% 50% !important;
+  border-radius: 999px !important;
+  will-change: transform !important;
+}
+
+/* Reduce expensive blur repainting while scrolling */
+.portfolio-app .portfolio-nav {
+  backdrop-filter: blur(14px) saturate(1.12) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.12) !important;
+  will-change: transform !important;
+}
+
+.portfolio-app .glass-card,
+.portfolio-app .profile-card,
+.portfolio-app .project-card,
+.portfolio-app .education-card,
+.portfolio-app .experience-card,
+.portfolio-app .skill-card,
+.portfolio-app .portfolio-card-light,
+.portfolio-app .portfolio-card-dark {
+  backdrop-filter: blur(14px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.08) !important;
+}
+
+.portfolio-app .professional-wave-background,
+.portfolio-app .professional-wave-background canvas {
+  contain: strict !important;
 }

@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
 import { Mail, ExternalLink, ArrowUpRight, Sparkles, Brain, Server, BarChart3, ShieldCheck, Code2, Database, Download, Bot } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import WelcomeIntro from "@/components/WelcomeIntro";
+import HighEnd3DBackground from "@/components/HighEnd3DBackground";
 
 const profile = {
   name: "Suhail Kataria",
@@ -57,7 +58,7 @@ stack: [
       "Full-stack lead management dashboard with authentication, RBAC, CRUD operations, search, filtering, pagination, CSV export, and a responsive analytics-focused UI.",
     stack: ["React", "TypeScript", "Node.js", "Express", "MongoDB", "JWT", "Render"],
     icon: Server,
-    github: "https://github.com/suhailkataria63",
+    github: "https://github.com/suhailkataria63/smart-leads-dash",
     live: "https://smart-leads-dash.vercel.app/login"
   },
   {
@@ -162,84 +163,84 @@ function cx(...classes) {
 
 const themeStyles = {
   dark: {
-    main: "bg-[#050816] text-slate-100",
-    progress: "bg-gradient-to-r from-cyan-400 via-violet-400 to-fuchsia-400",
-    nav: "border-white/10 bg-white/8",
+    main: "portfolio-dark theme-dark",
+    progress: "bg-gradient-to-r from-cyan-300 via-violet-400 to-fuchsia-400",
+    nav: "border-white/10 bg-slate-900/72 shadow-2xl shadow-black/40",
     brand: "text-white",
-    navLinks: "text-slate-300",
+    navLinks: "text-slate-200",
     navHover: "hover:text-cyan-300",
-    toggle: "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10",
+    toggle: "border-white/12 bg-white/10 text-white shadow-sm shadow-black/30 hover:bg-white/15",
     eyebrow: "text-cyan-300",
     sectionTitle: "text-white",
     sectionText: "text-slate-300",
-    heroBadge: "border-cyan-300/20 bg-cyan-300/10 text-cyan-200",
+    heroBadge: "border-cyan-300/35 bg-cyan-300/12 text-cyan-100 shadow-lg shadow-cyan-950/25",
     heroTitle: "text-white",
     heroGradient: "from-cyan-300 via-violet-300 to-fuchsia-300",
     bodyText: "text-slate-300",
-    primaryButton: "bg-cyan-300 text-slate-950 hover:bg-cyan-200",
-    outlineButton: "border-white/15 bg-white/5 text-white hover:bg-white/10",
-    orbOne: "bg-cyan-500/20",
-    orbTwo: "bg-violet-500/20",
-    heroGlow: "from-cyan-400/30 to-fuchsia-500/30",
-    glassCard: "border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl",
-    projectCard: "border-white/10 bg-white/[0.07] backdrop-blur-xl hover:border-cyan-300/40 hover:bg-white/[0.1]",
+    primaryButton: "primary-btn view-projects-btn shadow-lg shadow-cyan-500/20 hover:opacity-95",
+    outlineButton: "secondary-btn resume-btn shadow-sm shadow-black/25 hover:opacity-95",
+    orbOne: "bg-cyan-500/18",
+    orbTwo: "bg-fuchsia-500/18",
+    heroGlow: "from-cyan-400/28 via-violet-500/22 to-fuchsia-500/28",
+    glassCard: "portfolio-card-dark border-cyan-200/18 bg-gradient-to-br from-slate-700/45 via-indigo-950/42 to-fuchsia-950/36 shadow-2xl shadow-violet-950/50 backdrop-blur-2xl",
+    projectCard: "portfolio-card-dark border-cyan-200/14 bg-gradient-to-br from-slate-800/52 via-indigo-950/44 to-fuchsia-950/32 shadow-xl shadow-violet-950/35 backdrop-blur-2xl hover:border-cyan-300/45 hover:shadow-cyan-950/35",
     iconBox: "bg-cyan-300/15 text-cyan-200",
     externalIcon: "text-slate-400 group-hover:text-cyan-300",
     projectType: "text-cyan-300",
     cardTitle: "text-white",
-    tag: "bg-white/8 text-slate-300",
-    statCard: "border-white/10 bg-black/20 text-slate-200",
-    filterActive: "border-cyan-300 bg-cyan-300 text-slate-950",
-    filterIdle: "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10",
-    githubButton: "border-white/10 bg-white/5 text-white hover:bg-white/10",
-    liveButton: "bg-cyan-300 text-slate-950 hover:bg-cyan-200",
-    skillCard: "border-white/10 bg-white/[0.07]",
+    tag: "border border-white/10 bg-white/9 text-slate-200 shadow-sm shadow-black/20",
+    statCard: "border-white/8 bg-gradient-to-r from-slate-700/58 via-violet-950/42 to-fuchsia-950/36 text-slate-100 shadow-sm shadow-black/25 backdrop-blur-xl",
+    filterActive: "border-cyan-300 bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-500/20",
+    filterIdle: "border-white/10 bg-white/6 text-slate-300 hover:bg-white/12",
+    githubButton: "secondary-btn border-white/12 hover:opacity-95",
+    liveButton: "primary-btn shadow-lg shadow-cyan-500/20 hover:opacity-95",
+    skillCard: "portfolio-card-dark border-cyan-200/14 bg-gradient-to-br from-slate-800/52 via-indigo-950/42 to-cyan-950/30 shadow-xl shadow-cyan-950/30 backdrop-blur-2xl",
     skillIcon: "text-cyan-300",
-    skillTag: "border-white/10 bg-white/5 text-slate-300",
-    experienceCard: "border-white/10 bg-white/[0.07]",
-    periodPill: "bg-white/10 text-slate-300",
-    contactBox: "border-white/10 bg-gradient-to-br from-cyan-400/15 via-violet-400/15 to-fuchsia-400/15",
-    contactPrimary: "bg-white text-slate-950 hover:bg-slate-200",
+    skillTag: "border-white/10 bg-white/7 text-slate-300 shadow-sm shadow-black/20",
+    experienceCard: "portfolio-card-dark border-cyan-200/14 bg-gradient-to-br from-slate-800/50 via-indigo-950/38 to-fuchsia-950/28 shadow-xl shadow-violet-950/30 backdrop-blur-2xl",
+    periodPill: "bg-white/10 text-slate-200 ring-1 ring-white/10",
+    contactBox: "portfolio-card-dark border-cyan-200/18 bg-gradient-to-br from-cyan-400/14 via-violet-500/18 to-fuchsia-500/16 shadow-2xl shadow-fuchsia-950/35 backdrop-blur-2xl",
+    contactPrimary: "primary-btn hover:opacity-95",
   },
   light: {
-    main: "bg-[radial-gradient(circle_at_top_left,#dbeafe_0%,transparent_30%),radial-gradient(circle_at_top_right,#e0e7ff_0%,transparent_28%),linear-gradient(135deg,#f8fafc_0%,#eef4ff_45%,#f8fafc_100%)] text-slate-950",
+    main: "portfolio-light theme-light",
     progress: "bg-gradient-to-r from-blue-700 via-indigo-600 to-slate-900",
-    nav: "border-white/70 bg-white/65 shadow-xl shadow-slate-300/40",
+    nav: "border-white/75 bg-white/72 shadow-xl shadow-slate-300/35",
     brand: "text-slate-950",
     navLinks: "text-slate-700",
     navHover: "hover:text-blue-700",
     toggle: "border-slate-200/80 bg-slate-950 text-white shadow-sm hover:bg-slate-800",
-    eyebrow: "text-blue-700",
+    eyebrow: "text-blue-800",
     sectionTitle: "text-slate-950",
     sectionText: "text-slate-700",
-    heroBadge: "border-blue-300/60 bg-white/80 text-slate-900 shadow-sm shadow-blue-100/80",
+    heroBadge: "border-blue-300/70 bg-white/82 text-slate-900 shadow-sm shadow-blue-100/90",
     heroTitle: "text-slate-950",
-    heroGradient: "from-blue-800 via-indigo-700 to-slate-950",
+    heroGradient: "from-blue-700 via-indigo-600 to-violet-700",
     bodyText: "text-slate-700",
-    primaryButton: "bg-slate-950 text-white shadow-lg shadow-slate-300/50 hover:bg-slate-800",
-    outlineButton: "border-slate-300/80 bg-white/70 text-slate-950 shadow-sm hover:bg-white",
-    orbOne: "bg-blue-400/25",
-    orbTwo: "bg-indigo-400/25",
-    heroGlow: "from-blue-300/35 to-indigo-400/35",
-    glassCard: "border-white/80 bg-white/70 shadow-2xl shadow-slate-300/50 backdrop-blur-2xl",
-    projectCard: "border-white/80 bg-white/68 shadow-xl shadow-slate-300/35 backdrop-blur-2xl hover:border-blue-300 hover:bg-white/82",
+    primaryButton: "primary-btn view-projects-btn shadow-lg shadow-blue-300/50 hover:opacity-95",
+    outlineButton: "secondary-btn resume-btn shadow-sm hover:opacity-95",
+    orbOne: "bg-sky-300/30",
+    orbTwo: "bg-indigo-300/28",
+    heroGlow: "from-sky-300/35 via-blue-300/25 to-indigo-400/32",
+    glassCard: "portfolio-card-light border-white/90 bg-gradient-to-br from-white/88 via-sky-50/78 to-indigo-100/70 shadow-2xl shadow-blue-300/30 backdrop-blur-2xl",
+    projectCard: "portfolio-card-light border-white/90 bg-gradient-to-br from-white/88 via-sky-50/76 to-indigo-100/62 shadow-xl shadow-blue-300/22 backdrop-blur-2xl hover:border-blue-300 hover:shadow-blue-300/35",
     iconBox: "bg-blue-100/90 text-blue-800",
     externalIcon: "text-slate-500 group-hover:text-blue-700",
     projectType: "text-blue-700",
     cardTitle: "text-slate-950",
-    tag: "border border-white/80 bg-white/75 text-slate-700",
-    statCard: "border-white/80 bg-white/78 text-slate-900 shadow-sm shadow-slate-200/70",
+    tag: "border border-white/90 bg-gradient-to-r from-white/92 to-sky-50/82 text-slate-700 shadow-sm shadow-blue-100/70",
+    statCard: "border-white/90 bg-gradient-to-r from-white/95 via-sky-50/88 to-indigo-100/74 text-slate-950 shadow-sm shadow-blue-200/65 backdrop-blur-xl",
     filterActive: "border-slate-950 bg-slate-950 text-white shadow-md shadow-slate-300/50",
-    filterIdle: "border-white/80 bg-white/65 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950",
-    githubButton: "border-slate-300/80 bg-white/72 text-slate-900 shadow-sm hover:bg-white",
-    liveButton: "bg-blue-700 text-white shadow-md shadow-blue-200/80 hover:bg-blue-800",
-    skillCard: "border-white/80 bg-white/70 shadow-xl shadow-slate-300/35 backdrop-blur-2xl",
+    filterIdle: "border-white/85 bg-white/70 text-slate-700 shadow-sm hover:bg-white hover:text-slate-950",
+    githubButton: "secondary-btn border-slate-300/80 shadow-sm hover:opacity-95",
+    liveButton: "primary-btn shadow-md shadow-blue-200/80 hover:opacity-95",
+    skillCard: "portfolio-card-light border-white/90 bg-gradient-to-br from-white/90 via-sky-50/74 to-indigo-100/60 shadow-xl shadow-blue-300/22 backdrop-blur-2xl",
     skillIcon: "text-blue-700",
-    skillTag: "border-white/80 bg-white/70 text-slate-700 shadow-sm",
-    experienceCard: "border-white/80 bg-white/70 shadow-xl shadow-slate-300/35 backdrop-blur-2xl",
-    periodPill: "bg-slate-950 text-white",
-    contactBox: "border-white/80 bg-white/70 shadow-2xl shadow-slate-300/50 backdrop-blur-2xl",
-    contactPrimary: "bg-slate-950 text-white hover:bg-slate-800",
+    skillTag: "border-white/85 bg-white/74 text-slate-700 shadow-sm",
+    experienceCard: "portfolio-card-light border-white/90 bg-gradient-to-br from-white/90 via-sky-50/72 to-indigo-100/58 shadow-xl shadow-blue-300/22 backdrop-blur-2xl",
+    periodPill: "bg-slate-950 text-white shadow-sm shadow-slate-300/50",
+    contactBox: "portfolio-card-light border-white/90 bg-gradient-to-br from-white/90 via-sky-50/78 to-indigo-100/62 shadow-2xl shadow-blue-300/28 backdrop-blur-2xl",
+    contactPrimary: "primary-btn hover:opacity-95",
   },
 };
 
@@ -265,7 +266,18 @@ export default function SuhailPortfolio() {
   const [filter, setFilter] = useState("All");
   const [themeMode, setThemeMode] = useState("dark");
   const isLight = themeMode === "light";
+  const isDarkMode = themeMode === "dark";
   const theme = isLight ? themeStyles.light : themeStyles.dark;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const activeTheme = isDarkMode ? "dark" : "light";
+
+    root.classList.toggle("dark", isDarkMode);
+    root.dataset.theme = activeTheme;
+    document.body.dataset.theme = activeTheme;
+    document.body.classList.toggle("dark", isDarkMode);
+  }, [isDarkMode]);
 
   const categories = useMemo(() => ["All", "AI", "Full-Stack", "Backend", "Data"], []);
   const filteredProjects = projects.filter((project) => {
@@ -281,14 +293,18 @@ export default function SuhailPortfolio() {
       ) : (
         <motion.main
           key="portfolio-dashboard"
-          className={cx("min-h-screen overflow-hidden transition-colors duration-500", theme.main)}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          className={cx("portfolio-app relative min-h-screen overflow-x-hidden transition-colors duration-500", theme.main)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
-      <motion.div style={{ scaleX }} className={cx("fixed left-0 top-0 z-50 h-1 w-full origin-left", theme.progress)} />
+          <HighEnd3DBackground theme={isDarkMode ? "dark" : "light"} />
+      <motion.div
+        style={{ scaleX, transformOrigin: "0% 50%" }}
+        className={cx("portfolio-scroll-progress", theme.progress)}
+      />
 
-      <nav className={cx("fixed left-1/2 top-5 z-40 flex w-[92%] max-w-6xl -translate-x-1/2 items-center justify-between rounded-full border px-5 py-3 backdrop-blur-2xl", theme.nav)}>
+      <nav className={cx("portfolio-nav flex items-center justify-between rounded-full border px-5 py-3 backdrop-blur-2xl", theme.nav)}>
         <a href="#home" className={cx("font-semibold tracking-wide", theme.brand)}>
           <span className="hidden sm:inline">Suhail.dev</span>
           <span className="sm:hidden">SK</span>
@@ -327,7 +343,7 @@ export default function SuhailPortfolio() {
                 <a href="#projects">View Projects <ArrowUpRight className="ml-2 h-4 w-4" /></a>
               </Button>
               <Button asChild variant="outline" className={cx("rounded-full px-6 py-6", theme.outlineButton)}>
-                <a href={profile.resume} download="Suhail_1P.pdf">
+                <a href={profile.resume} download="Suhail_Kataria_Resume.pdf">
                   <Download className="mr-2 h-4 w-4" /> Resume
                 </a>
               </Button>
@@ -336,10 +352,24 @@ export default function SuhailPortfolio() {
 
           <motion.div initial={{ opacity: 0, scale: 0.9, rotate: -3 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 0.9, delay: 0.15 }} className="relative">
             <div className={cx("absolute inset-0 rounded-[2rem] bg-gradient-to-br blur-2xl", theme.heroGlow)} />
-            <Card className={cx("relative overflow-hidden rounded-[2rem] border", theme.glassCard)}>
+            <Card className={cx("profile-card glass-card relative overflow-hidden rounded-[2rem] border", theme.glassCard)}>
               <CardContent className="p-7">
                 <div className="mb-7 flex items-center gap-4">
-                  <div className={cx("grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br text-2xl font-black", isLight ? "from-blue-200 to-indigo-300 text-slate-950 shadow-lg shadow-blue-200/70" : "from-cyan-300 to-violet-400 text-slate-950")}>SK</div>
+                  <div
+                    className={cx(
+                      "grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border",
+                      isLight
+                        ? "border-slate-200/80 bg-slate-950 shadow-lg shadow-blue-200/60"
+                        : "border-white/10 bg-black/90 shadow-lg shadow-cyan-500/15"
+                    )}
+                  >
+                    <img
+                      src="/icons.svg"
+                      alt="Suhail Kataria logo"
+                      className="h-full w-full object-cover"
+                      draggable="false"
+                    />
+                  </div>
                   <div>
                     <h3 className={cx("text-2xl font-bold", theme.cardTitle)}>{profile.name}</h3>
                     <p className={cx("text-sm", theme.bodyText)}>{profile.title}</p>
@@ -347,7 +377,7 @@ export default function SuhailPortfolio() {
                 </div>
                 <div className="grid gap-3">
                   {["94% phishing model accuracy", "9% MAPE demand forecasting", "Full-stack AI apps", "JWT + RBAC backend systems"].map((item) => (
-                    <motion.div whileHover={{ x: 8 }} key={item} className={cx("rounded-2xl border p-4 font-semibold", theme.statCard)}>{item}</motion.div>
+                    <motion.div whileHover={{ x: 8 }} key={item} className={cx("glass-card rounded-2xl border p-4 font-semibold", theme.statCard)}>{item}</motion.div>
                   ))}
                 </div>
               </CardContent>
@@ -382,7 +412,7 @@ export default function SuhailPortfolio() {
                 whileHover={{ y: -10, rotateX: 2 }}
                 className="group block"
               >
-                <Card className={cx("h-full overflow-hidden rounded-[1.75rem] border transition", theme.projectCard)}>
+                <Card className={cx("project-card h-full overflow-hidden rounded-[1.75rem] border transition", theme.projectCard)}>
                   <CardContent className="flex h-full flex-col p-6">
                     <div className="mb-5 flex items-center justify-between">
                       <div className={cx("grid h-12 w-12 place-items-center rounded-2xl", theme.iconBox)}>
@@ -429,7 +459,7 @@ export default function SuhailPortfolio() {
             const Icon = area.icon;
             return (
               <motion.div key={area.title} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                <Card className={cx("h-full min-h-[260px] rounded-[1.75rem] border", theme.skillCard)}>
+                <Card className={cx("skill-card h-full min-h-[260px] rounded-[1.75rem] border", theme.skillCard)}>
                   <CardContent className="flex h-full flex-col justify-center p-8">
                     <Icon className={cx("mb-5 h-8 w-8", theme.skillIcon)} />
                     <h3 className={cx("text-xl font-bold", theme.cardTitle)}>{area.title}</h3>
@@ -461,7 +491,7 @@ export default function SuhailPortfolio() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className={cx("rounded-[1.5rem] border p-6", theme.experienceCard)}
+              className={cx("education-card rounded-[1.5rem] border p-6", theme.experienceCard)}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -488,7 +518,7 @@ export default function SuhailPortfolio() {
         <SectionTitle theme={theme} eyebrow="Experience" title="Training and Practical execution" />
         <div className="mx-auto max-w-4xl space-y-5">
           {experience.map((item) => (
-            <motion.div key={item.company} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className={cx("rounded-[1.5rem] border p-6", theme.experienceCard)}>
+            <motion.div key={item.company} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className={cx("experience-card rounded-[1.5rem] border p-6", theme.experienceCard)}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className={cx("text-xl font-bold", theme.cardTitle)}>{item.role}</h3>
@@ -505,7 +535,7 @@ export default function SuhailPortfolio() {
       </section>
 
       <section id="contact" className="px-6 py-24 md:px-10">
-        <motion.div initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className={cx("mx-auto max-w-5xl rounded-[2rem] border p-8 text-center backdrop-blur-xl md:p-14", theme.contactBox)}>
+        <motion.div initial={{ opacity: 0, scale: 0.96 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} className={cx("glass-card mx-auto max-w-5xl rounded-[2rem] border p-8 text-center backdrop-blur-xl md:p-14", theme.contactBox)}>
           <p className={cx("mb-3 text-sm font-semibold uppercase tracking-[0.35em]", theme.eyebrow)}>Contact</p>
           <h2 className={cx("text-3xl font-black md:text-5xl", theme.sectionTitle)}>Let’s build something intelligent.</h2>
           <p className={cx("mx-auto mt-4 max-w-2xl", theme.bodyText)}>Open to AI/ML internships, full-stack projects, backend API work, and data science collaborations.</p>

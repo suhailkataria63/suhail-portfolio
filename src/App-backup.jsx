@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { Mail, ExternalLink, ArrowUpRight, Sparkles, Brain, Server, BarChart3, ShieldCheck, Code2, Database, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
