@@ -11,7 +11,7 @@ const palettes = {
     vertical: "rgba(139, 92, 246, 0.20)",
     ribbonA: "rgba(34, 211, 238, 0.72)",
     ribbonB: "rgba(167, 139, 250, 0.55)",
-    particles: "rgba(226, 232, 240, 0.58)",
+    particles: "rgba(248, 250, 252, 0.74)",
     ripple: "rgba(103, 232, 249,"
   },
   light: {
@@ -24,7 +24,7 @@ const palettes = {
     vertical: "rgba(124, 58, 237, 0.12)",
     ribbonA: "rgba(37, 99, 235, 0.46)",
     ribbonB: "rgba(14, 165, 233, 0.36)",
-    particles: "rgba(30, 64, 175, 0.30)",
+    particles: "rgba(30, 64, 175, 0.95)",
     ripple: "rgba(37, 99, 235,"
   }
 };
@@ -117,8 +117,8 @@ function HighEnd3DBackground({ theme = "dark" }) {
       const spread = width * (0.22 + depth * 0.88);
 
       const wave =
-        Math.sin(u * 3.2 + time * 0.42 + depth * 1.6) * (2 + depth * 14) +
-        Math.sin(u * 6.4 - time * 0.22 + depth * 2.1) * (1 + depth * 5);
+        Math.sin(u * 3.2 + time * 0.85 + depth * 1.6) * (3 + depth * 20) +
+        Math.sin(u * 6.4 - time * 0.55 + depth * 2.1) * (2 + depth * 8);
 
       return {
         x: width * 0.5 + u * spread + px * (4 + depth * 18),
@@ -228,9 +228,7 @@ function HighEnd3DBackground({ theme = "dark" }) {
     const draw = (now) => {
       if (!running) return;
 
-      // Cap animation around 30 FPS. This keeps scrolling smooth,
-      // especially on MacBook Air / integrated GPU devices.
-      if (!reducedMotion && now - lastFrame < 33) {
+      if (!reducedMotion && now - lastFrame < 24) {
         raf = window.requestAnimationFrame(draw);
         return;
       }
@@ -253,7 +251,6 @@ function HighEnd3DBackground({ theme = "dark" }) {
       ctx.save();
       ctx.globalCompositeOperation = activeTheme === "dark" ? "lighter" : "source-over";
 
-      // Lighter grid for better scroll performance.
       const rowCount = 16;
 
       for (let r = 0; r < rowCount; r += 1) {
@@ -287,15 +284,14 @@ function HighEnd3DBackground({ theme = "dark" }) {
         );
       }
 
-      // Reduced ribbon count + glow for smoother scrolling.
-      const ribbonDepths = [0.24, 0.42, 0.62];
+      const ribbonDepths = [0.20, 0.32, 0.46, 0.62, 0.76];
 
       ribbonDepths.forEach((v, index) => {
-        const pts = makeRow(v, time * 0.86 + index * 0.35, px, py, 96);
+        const pts = makeRow(v, time * 1.25 + index * 0.45, px, py, 110);
         const offset = (index - 1) * 4;
 
         pts.forEach((p, i) => {
-          p.y -= 22 + index * 13 + Math.sin(i * 0.035 + time * 0.75 + index) * 2 + offset;
+          p.y -= 22 + index * 13 + Math.sin(i * 0.045 + time * 1.45 + index) * 6 + offset;
         });
 
         strokeSmooth(
@@ -309,27 +305,39 @@ function HighEnd3DBackground({ theme = "dark" }) {
 
       ctx.restore();
 
-      // Sparse data points.
+      // Subtle flying specks. Slightly stronger in both themes without increasing size.
       ctx.save();
       ctx.globalCompositeOperation = activeTheme === "dark" ? "lighter" : "source-over";
       ctx.fillStyle = palette.particles;
+      ctx.shadowBlur = 0;
 
-      for (let i = 0; i < 14; i += 1) {
-        const v = (i * 0.137 + time * 0.018) % 1;
-        const lane = (i % 7) / 6;
-        const u = -0.92 + lane * 1.84 + Math.sin(i * 2.1) * 0.045;
+      for (let i = 0; i < 28; i += 1) {
+        const v = (i * 0.137 + time * 0.032) % 1;
+        const lane = (i % 8) / 7;
+        const u = -0.92 + lane * 1.84 + Math.sin(i * 2.1 + time * 0.35) * 0.035;
         const p = project(u, v, time, px, py);
-        const pulse = 0.55 + Math.sin(time * 2.4 + i * 0.7) * 0.25;
+        const pulse = 0.55 + Math.sin(time * 2.2 + i * 0.7) * 0.18;
 
-        ctx.globalAlpha = activeTheme === "light" ? 0.14 + pulse * 0.1 : 0.2 + pulse * 0.14;
+        const edgeFade = Math.min(1, v * 7, (1 - v) * 7);
+
+        ctx.globalAlpha =
+          activeTheme === "light"
+            ? (0.42 + pulse * 0.18) * edgeFade
+            : (0.26 + pulse * 0.14) * edgeFade;
+
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 0.7 + p.depth * 0.9, 0, Math.PI * 2);
+        ctx.arc(
+          p.x,
+          p.y,
+          activeTheme === "light" ? 0.65 + p.depth * 0.65 : 0.7 + p.depth * 0.85,
+          0,
+          Math.PI * 2
+        );
         ctx.fill();
       }
 
       ctx.restore();
 
-      // Clean click ripple on empty background/page only.
       const remaining = [];
 
       for (const pulse of pulsesRef.current) {
@@ -356,7 +364,6 @@ function HighEnd3DBackground({ theme = "dark" }) {
 
       pulsesRef.current = remaining;
 
-      // Content readability veil.
       const veil = ctx.createLinearGradient(0, 0, 0, height);
 
       if (activeTheme === "light") {
