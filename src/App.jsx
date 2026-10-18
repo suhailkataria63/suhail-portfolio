@@ -19,7 +19,7 @@ const profile = {
     "I build AI-powered web applications, LLM-integrated workflows, predictive models, REST APIs, dashboards, and scalable full-stack products using Python, FastAPI, Next.js, React, TypeScript, Golang, SQL, and modern deployment tools.",
 };
 
-const projects = [
+const projects = [  
   {
     title: "InternAI Resume Analyzer",
     type: "AI Matching Workflow",
@@ -30,6 +30,25 @@ stack: [
     icon: Brain,
     github: "https://github.com/suhailkataria63/InternAI",
     live: "https://intern-ai-seven.vercel.app"
+  },
+  {
+  title: "Cynbit AI Solutions Architect",
+  type: "AI-Powered Business Solution Planning",
+  description:
+    "AI-powered platform that transforms business requirements into actionable solution blueprints, technical architectures, implementation roadmaps, and KPIs using Groq's GPT-OSS 120B",
+  stack: [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Groq API",
+    "GPT-OSS 120B",
+    "Zod",
+    "Tailwind CSS",
+    "Vercel"
+  ],
+  icon: Brain,
+  github: "https://github.com/suhailkataria63/cynbit-assignment",
+  live: "https://cynbit-ai.vercel.app/"
   },
   {
     title: "Hybrid Phishing Detection System",

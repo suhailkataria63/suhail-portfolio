@@ -19,6 +19,25 @@ const profile = {
 
 const projects = [
   {
+  title: "Cynbit AI Solutions Architect",
+  type: "AI-Powered Business Solution Planning",
+  description:
+    "Built an AI-powered platform that transforms business requirements into structured solution blueprints, including technical architecture, implementation roadmaps, feasibility analysis, and measurable KPIs. Integrated Groq's GPT-OSS 120B with structured output validation, interactive architecture views, and JSON export.",
+  stack: [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Groq API",
+    "GPT-OSS 120B",
+    "Zod",
+    "Tailwind CSS",
+    "Vercel"
+  ],
+  icon: Brain,
+  github: "https://github.com/suhailkataria63/cynbit-assignment",
+  live: "https://cynbit-ai.vercel.app/"
+  },
+  {
     title: "Hybrid Phishing Detection System",
     type: "AI Security Platform",
     description:
