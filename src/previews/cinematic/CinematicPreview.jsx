@@ -1,11 +1,18 @@
 import { useRef } from 'react'
 import { useLiquidInk } from './useLiquidInk'
+import { useCinematicScroll } from './useCinematicScroll'
+import SculptureWindow from './sculpture/SculptureWindow'
 import styles from './CinematicPreview.module.css'
 
 export default function CinematicPreview() {
   const heroRef = useRef(null)
   const canvasRef = useRef(null)
-  useLiquidInk(heroRef, canvasRef)
+  const titleRef = useRef(null)
+  const sculptureWindowRef = useRef(null)
+  const sceneControlRef = useRef(null)
+  const inkControlRef = useRef(null)
+  useLiquidInk(heroRef, canvasRef, inkControlRef)
+  useCinematicScroll(heroRef, sculptureWindowRef, titleRef, sceneControlRef, inkControlRef)
 
   return (
     <main className={styles.preview} ref={heroRef} data-cinematic-hero>
@@ -19,7 +26,7 @@ export default function CinematicPreview() {
 
       <section className={styles.hero} aria-labelledby="cinematic-title">
         <div className={styles.eyebrow}><span aria-hidden="true">✳</span> IDEAS INTO REALITY</div>
-        <h1 className={styles.title} id="cinematic-title" aria-label="Building what's next.">
+        <h1 ref={titleRef} className={styles.title} id="cinematic-title" aria-label="Building what's next.">
           <span className={styles.firstLine}>BUILDING</span>
           <span className={styles.secondLine}>WHAT&apos;S NEXT.</span>
         </h1>
@@ -37,6 +44,7 @@ export default function CinematicPreview() {
       </footer>
 
       <canvas ref={canvasRef} className={styles.ink} aria-hidden="true" />
+      <SculptureWindow heroRef={heroRef} titleRef={titleRef} windowRef={sculptureWindowRef} sceneControlRef={sceneControlRef} />
     </main>
   )
 }

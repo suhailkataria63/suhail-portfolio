@@ -30,6 +30,9 @@
 .back { display: flex; align-items: center; gap: 24px; }
 .back span { font-size: 24px; font-weight: 400; }
 .hero { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 64px 0 48px; }
+/* Let the sculpture behind the section receive pointer input in empty space. */
+.hero { pointer-events: none; }
+.hero > * { pointer-events: auto; }
 .eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
 .eyebrow span { font-size: 22px; line-height: 1; }
 .title { margin: 0 0 0 -0.065em; font-weight: 900; letter-spacing: -0.085em; line-height: 0.82; }
@@ -53,7 +56,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
   mix-blend-mode: difference;
   display: block;

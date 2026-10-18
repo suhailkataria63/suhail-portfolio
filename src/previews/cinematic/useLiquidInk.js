@@ -3,7 +3,7 @@ import { createInkRenderer, INK_POINTS } from './inkRenderer'
 
 // Owns only the ink layer. Future section/scroll timelines can animate the hero
 // independently, without competing with React state or pointer-driven transforms.
-export function useLiquidInk(heroRef, canvasRef) {
+export function useLiquidInk(heroRef, canvasRef, controlRef) {
   useEffect(() => {
     const hero = heroRef.current
     const canvas = canvasRef.current
@@ -14,6 +14,7 @@ export function useLiquidInk(heroRef, canvasRef) {
     let lastInput = 0
     let phase = 0
     let opacity = 0
+    let transition = 0
     let inside = false
     let bounds = canvas.getBoundingClientRect()
     let target = { x: bounds.width * 0.76, y: bounds.height * 0.58 }
@@ -34,7 +35,8 @@ export function useLiquidInk(heroRef, canvasRef) {
       const idle = now - lastInput
       // Stop turbulence gradually as the ink settles, then stop requesting frames.
       phase += dt * Math.max(0, 1 - idle / 1800)
-      opacity += ((inside ? 1 : 0) - opacity) * (1 - Math.exp(-dt * 9))
+      const targetOpacity = (inside ? 1 : 0) * (1 - transition)
+      opacity += (targetOpacity - opacity) * (1 - Math.exp(-dt * 9))
       const radius = Math.min(150, Math.max(70, bounds.width * 0.105))
       for (let i = 0; i < INK_POINTS; i++) {
         const leader = i === 0 ? target : nodes[i - 1]
@@ -48,6 +50,7 @@ export function useLiquidInk(heroRef, canvasRef) {
         points[i * 3 + 2] = radius * (1 - i * 0.072)
       }
       renderer.draw(points, phase, opacity)
+      if (transition >= 1) renderer.clear()
       if (!inside && opacity < 0.005) {
         renderer.clear()
         previousTime = 0
@@ -61,6 +64,18 @@ export function useLiquidInk(heroRef, canvasRef) {
     const wake = () => {
       lastInput = performance.now()
       if (!frame && renderer && !motion.matches && !document.hidden) frame = requestAnimationFrame(tick)
+    }
+    if (controlRef) {
+      controlRef.current = {
+        setTransition(value) {
+          transition = Math.max(0, Math.min(1, value))
+          if (transition >= 1) {
+            opacity = 0
+            renderer?.clear()
+          }
+          wake()
+        },
+      }
     }
     const resize = () => {
       bounds = canvas.getBoundingClientRect()
@@ -123,6 +138,7 @@ export function useLiquidInk(heroRef, canvasRef) {
       canvas.removeEventListener('webglcontextlost', contextLost)
       canvas.removeEventListener('webglcontextrestored', configure)
       renderer?.dispose()
+      if (controlRef) controlRef.current = null
     }
-  }, [heroRef, canvasRef])
+  }, [heroRef, canvasRef, controlRef])
 }
