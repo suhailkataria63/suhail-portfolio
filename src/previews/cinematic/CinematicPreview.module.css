@@ -51,6 +51,17 @@
   position: relative;
   z-index: 1;
 }
+.preview > [data-project-showcase] {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+}
+.preview > [data-about-veil] { position: absolute; inset: 0; z-index: 4; }
+.preview > [data-about-content] { position: absolute; z-index: 7; }
+.preview > [data-builder-scene] { position: absolute; inset: 0; z-index: 8; }
+.preview > [data-journey-scene] { position: absolute; inset: 0; z-index: 9; }
+.preview > [data-scene-three] { position: absolute; inset: 0; z-index: 10; }
+.preview > [data-contact-scene] { position: absolute; inset: 0; z-index: 11; }
 .preview > .ink {
   position: absolute;
   inset: 0;

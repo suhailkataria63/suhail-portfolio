@@ -2,6 +2,12 @@ import { useRef } from 'react'
 import { useLiquidInk } from './useLiquidInk'
 import { useCinematicScroll } from './useCinematicScroll'
 import SculptureWindow from './sculpture/SculptureWindow'
+import ProjectShowcase from './ProjectShowcase'
+import AboutIntro from './AboutIntro'
+import BuilderScene from './BuilderScene'
+import JourneyScene from './JourneyScene'
+import SceneThree from './SceneThree'
+import ContactScene from './ContactScene'
 import styles from './CinematicPreview.module.css'
 
 export default function CinematicPreview() {
@@ -11,8 +17,14 @@ export default function CinematicPreview() {
   const sculptureWindowRef = useRef(null)
   const sceneControlRef = useRef(null)
   const inkControlRef = useRef(null)
+  const projectsControlRef = useRef(null)
+  const aboutControlRef = useRef(null)
+  const builderControlRef = useRef(null)
+  const journeyControlRef = useRef(null)
+  const scene3ControlRef = useRef(null)
+  const contactControlRef = useRef(null)
   useLiquidInk(heroRef, canvasRef, inkControlRef)
-  useCinematicScroll(heroRef, sculptureWindowRef, titleRef, sceneControlRef, inkControlRef)
+  useCinematicScroll(heroRef, sculptureWindowRef, titleRef, sceneControlRef, inkControlRef, projectsControlRef, aboutControlRef, builderControlRef, journeyControlRef, scene3ControlRef, contactControlRef)
 
   return (
     <main className={styles.preview} ref={heroRef} data-cinematic-hero>
@@ -45,6 +57,12 @@ export default function CinematicPreview() {
 
       <canvas ref={canvasRef} className={styles.ink} aria-hidden="true" />
       <SculptureWindow heroRef={heroRef} titleRef={titleRef} windowRef={sculptureWindowRef} sceneControlRef={sceneControlRef} />
+      <ProjectShowcase controlRef={projectsControlRef} />
+      <AboutIntro controlRef={aboutControlRef} />
+      <BuilderScene controlRef={builderControlRef} />
+      <JourneyScene controlRef={journeyControlRef} />
+      <SceneThree controlRef={scene3ControlRef} />
+      <ContactScene controlRef={contactControlRef} />
     </main>
   )
 }

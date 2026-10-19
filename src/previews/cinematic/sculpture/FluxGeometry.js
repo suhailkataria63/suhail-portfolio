@@ -58,3 +58,51 @@ export class FluxGeometry extends BufferGeometry {
     this.computeBoundingSphere()
   }
 }
+
+// A closed elliptical tube used by the optional Orbit sculpture. The tube
+// profile keeps the bands broad and softly rounded while the loop proportions
+// and rotations provide an engineered, asymmetric silhouette.
+export class OrbitBandGeometry extends BufferGeometry {
+  constructor(radiusX = 1.45, radiusY = 0.9, bandWidth = 0.22, bandThickness = 0.07, surfaceTwist = 0) {
+    super()
+    const segments = 128
+    const sides = 20
+    const vertices = []
+    const indices = []
+    for (let ring = 0; ring < segments; ring += 1) {
+      const t = (ring / segments) * Math.PI * 2
+      const centerX = radiusX * Math.cos(t)
+      const centerY = radiusY * Math.sin(t)
+      const tangent = new Vector3(-radiusX * Math.sin(t), radiusY * Math.cos(t), 0).normalize()
+      const normal = new Vector3(-tangent.y, tangent.x, 0).normalize()
+      const binormal = new Vector3(0, 0, 1)
+      for (let side = 0; side < sides; side += 1) {
+        const a = (side / sides) * Math.PI * 2
+        // Superellipse profile: broad front/back faces with softly rounded
+        // corners and a deliberately thin edge, like a precision metal band.
+        const profileAngle = a + surfaceTwist * (ring / segments)
+        const profileX = Math.sign(Math.cos(profileAngle)) * Math.pow(Math.abs(Math.cos(profileAngle)), 0.42) * bandWidth * 0.5
+        const profileZ = Math.sign(Math.sin(profileAngle)) * Math.pow(Math.abs(Math.sin(profileAngle)), 0.42) * bandThickness * 0.5
+        const offset = new Vector3()
+          .addScaledVector(normal, profileX)
+          .addScaledVector(binormal, profileZ)
+        vertices.push(centerX + offset.x, centerY + offset.y, offset.z)
+      }
+    }
+    for (let ring = 0; ring < segments; ring += 1) {
+      const nextRing = (ring + 1) % segments
+      for (let side = 0; side < sides; side += 1) {
+        const nextSide = (side + 1) % sides
+        const a = ring * sides + side
+        const b = ring * sides + nextSide
+        const c = nextRing * sides + nextSide
+        const d = nextRing * sides + side
+        indices.push(a, b, d, b, c, d)
+      }
+    }
+    this.setAttribute('position', new Float32BufferAttribute(vertices, 3))
+    this.setIndex(indices)
+    this.computeVertexNormals()
+    this.computeBoundingSphere()
+  }
+}

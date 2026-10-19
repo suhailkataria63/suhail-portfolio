@@ -1,0 +1,88 @@
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+.marquee {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: max-content;
+  white-space: nowrap;
+  font: 850 clamp(76px, 14vw, 230px)/.8 'Inter Variable', Arial, sans-serif;
+  letter-spacing: -.1em;
+  will-change: transform, opacity;
+}
+.layout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 7vw;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.copy { width: min(48vw, 600px); }
+.eyebrow {
+  display: block;
+  margin-bottom: 25px;
+  color: #a7b6ca;
+  font: 600 11px/1 'Inter Variable', Arial, sans-serif;
+  letter-spacing: .16em;
+}
+.copy h2 {
+  margin: 0;
+  font: 800 clamp(54px, 7.4vw, 120px)/.84 'Inter Variable', Arial, sans-serif;
+  letter-spacing: -.085em;
+  will-change: transform;
+}
+.copy p {
+  width: min(430px, 100%);
+  margin: 32px 0 0;
+  color: #aab7c8;
+  font: 450 clamp(16px, 1.35vw, 21px)/1.4 'Inter Variable', Arial, sans-serif;
+  letter-spacing: -.025em;
+  will-change: transform;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 42px;
+  will-change: transform;
+}
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 25px;
+  min-width: 132px;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 1px solid #71819888;
+  color: #fff;
+  font: 650 10px/1 'Inter Variable', Arial, sans-serif;
+  letter-spacing: .12em;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  pointer-events: none;
+}
+.links a span { font-size: 16px; letter-spacing: 0; }
+.links a:hover, .links a:focus-visible { background: #1b2a40; border-color: #aebed2; }
+.links a:focus-visible { outline: 2px solid #dbe6f2; outline-offset: 5px; }
+
+@media (max-width: 700px) {
+  .marquee { font-size: 21vw; }
+  .layout { padding: 0 7vw; align-items: flex-start; padding-top: 22vh; }
+  .copy { width: 86vw; }
+  .copy h2 { font-size: clamp(46px, 12vw, 78px); }
+  .copy p { margin-top: 22px; font-size: 15px; }
+  .links { display: grid; grid-template-columns: 1fr; width: min(260px, 100%); margin-top: 30px; }
+  .links a { min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene { opacity: 1; }
+  .marquee, .layout, .copy h2, .copy p, .links { transform: none !important; }
+}

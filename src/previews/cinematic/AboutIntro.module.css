@@ -1,0 +1,18 @@
+.veil { position: absolute; inset: 0; z-index: 4; pointer-events: none; background: #000; will-change: transform, background-color, opacity; }
+.content { position: absolute; z-index: 7; top: 24%; left: 7vw; width: min(58vw, 780px); color: #000; pointer-events: none; opacity: 0; }
+.eyebrow { display: block; margin-bottom: 24px; color: #55606f; font: 600 10px/1.5 'Inter Variable', Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+.title { margin: 0; font: 750 clamp(60px, 10vw, 156px)/0.82 'Inter Variable', Arial, sans-serif; letter-spacing: -0.085em; }
+.mask { display: block; overflow: hidden; padding: 0.08em 0 0.13em; }
+.mask > span { display: block; opacity: 0; will-change: transform, opacity; }
+.content p { margin: 26px 0 0; color: #4e5865; font: 450 clamp(16px, 1.5vw, 24px)/1.35 'Inter Variable', Arial, sans-serif; letter-spacing: -0.035em; opacity: 0; will-change: transform, opacity; }
+
+@media (max-width: 640px) {
+  .content { top: 16%; left: 7vw; width: 86vw; }
+  .title { font-size: clamp(48px, 14vw, 88px); }
+  .eyebrow { font-size: 8px; }
+  .content p { margin-top: 18px; font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content, .veil { display: none; }
+}

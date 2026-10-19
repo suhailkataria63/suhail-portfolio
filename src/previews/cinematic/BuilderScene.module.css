@@ -1,0 +1,65 @@
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: transparent;
+  color: #101722;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scene::before { content: ''; position: absolute; inset: 0; z-index: 0; background: #fff; opacity: var(--builder-bg, 0); }
+
+.statement {
+  position: absolute;
+  top: 17%;
+  left: 7vw;
+  width: 86vw;
+  transform-origin: left center;
+  will-change: transform, opacity;
+}
+
+.line {
+  display: block;
+  width: max-content;
+  overflow: hidden;
+  font: 800 clamp(58px, 10.4vw, 164px)/0.82 'Inter Variable', Arial, sans-serif;
+  letter-spacing: -0.085em;
+  will-change: transform, opacity;
+}
+
+.solid { color: #101722; }
+.outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px #101722;
+  /* Preserve the original reveal mask while reserving room for the stroke
+     beyond the final glyph advance. */
+  padding-inline-end: 0.06em;
+}
+.building { display: flex; align-items: baseline; gap: 0.22em; }
+.building em { color: #53647e; font: 500 clamp(16px, 1.45vw, 24px)/1.1 'Inter Variable', Arial, sans-serif; letter-spacing: -0.04em; font-style: normal; max-width: 220px; }
+
+.intro {
+  position: absolute;
+  top: 42%;
+  right: 7vw;
+  width: min(32vw, 440px);
+  color: #101722;
+  will-change: transform, opacity;
+}
+
+.eyebrow { display: block; margin-bottom: 22px; color: #53647e; font: 650 10px/1.4 'Inter Variable', Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+.intro p { margin: 0; font: 450 clamp(18px, 2vw, 30px)/1.18 'Inter Variable', Arial, sans-serif; letter-spacing: -0.045em; }
+
+@media (max-width: 700px) {
+  .statement { top: 15%; left: 7vw; width: 86vw; }
+  .line { font-size: clamp(42px, 12.8vw, 88px); }
+  .building { display: block; }
+  .building em { display: block; max-width: 72vw; margin-top: 10px; font-size: 15px; }
+  .intro { top: 62%; left: 7vw; right: auto; width: 86vw; }
+  .intro p { font-size: 19px; line-height: 1.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene { display: none; }
+}
