@@ -1,0 +1,22 @@
+.svg {
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.mediaRegion {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.video {
+  position: absolute;
+  display: block;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  will-change: opacity;
+}

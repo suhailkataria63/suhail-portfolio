@@ -1,0 +1,70 @@
+.circular-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  border-radius: 50%;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+  -webkit-transform-origin: 50% 50%;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 1;
+}
+
+.circular-text__tilt,
+.circular-text__plane,
+.circular-text__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+}
+
+.circular-text__line {
+  position: absolute;
+  inset: 1.3em;
+  box-sizing: border-box;
+  border-style: solid;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.circular-text__letter {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: visible;
+  text-align: center;
+  transform-origin: 50% 50%;
+  transition: color 0.5s cubic-bezier(0, 0, 0, 1);
+  white-space: pre;
+}
+
+.circular-text__letter > span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: block;
+  width: max-content;
+  transform: translate(-50%, -50%);
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1;
+  white-space: pre;
+}
+
+.circular-text__center {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}

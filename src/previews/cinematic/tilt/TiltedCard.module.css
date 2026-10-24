@@ -1,0 +1,15 @@
+.stage {
+  position: relative;
+  width: 100%;
+  perspective: 1100px;
+  transform-style: preserve-3d;
+  touch-action: pan-y pinch-zoom;
+}
+
+.body {
+  position: relative;
+  width: 100%;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  will-change: transform;
+}

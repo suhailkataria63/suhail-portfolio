@@ -1,0 +1,13 @@
+.fixedLine { display: block; white-space: nowrap; }
+.slot { position: relative; display: block; width: 100%; margin-top: 0.1em; line-height: 1; }
+/* All candidate words share this permanent layout row. Source-controlled
+   highlight resizing happens in the independent absolute visual layer. */
+.reserve { display: grid; grid-template-columns: minmax(0, 1fr); visibility: hidden; pointer-events: none; }
+.measure { grid-area: 1 / 1; display: flex; width: max-content; padding: 0.1em 0.28em; white-space: pre; font: inherit; letter-spacing: inherit; }
+.measureContent, .measureWord { display: inline-flex; flex-wrap: nowrap; }
+.measureElement { display: inline-block; }
+.measureSpace { white-space: pre; }
+.visual { position: absolute; top: 0; left: 0; transform-origin: left top; touch-action: pan-y; }
+.visual .rotator { display: inline-flex; flex-wrap: nowrap; justify-content: flex-start; padding: 0.1em 0.28em; font: inherit; letter-spacing: inherit; }
+.rotator :global(.text-rotate) { flex-wrap: nowrap; white-space: pre; }
+.staticWord { display: inline-block; padding: 0.1em 0.28em; border-radius: 0.16em; font: inherit; letter-spacing: inherit; white-space: pre; }

@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { projects as portfolioProjects } from '@/data/portfolio'
 import styles from './ProjectShowcase.module.css'
 import ProjectHoverEffect from './ProjectHoverEffect'
+
+const ProjectTiltCard = lazy(() => import('../experiments/ProjectTiltCard'))
 
 const featuredProjects = [
   portfolioProjects.find(project => project.title.startsWith('Cynbit AI')),
@@ -62,14 +64,15 @@ function projectTransform(project, local) {
   // at every viewport height instead of relying on a fixed vh guess.
   const compositionHeight = project.offsetHeight || window.innerHeight * 0.5
   const travel = (window.innerHeight + compositionHeight) / 2 + 24
-  return mix(travel, -travel, local)
+  const heroStart = 0.32
+  const heroEnd = 0.62
+  if (local <= heroStart) return mix(travel, 0, local / heroStart)
+  if (local <= heroEnd) return 0
+  return mix(0, -travel, (local - heroEnd) / (1 - heroEnd))
 }
 
-export default function ProjectShowcase({ controlRef }) {
-  const hoverParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('hover') : null
-  const hoverMode = hoverParam === 'cappen' || hoverParam === 'subtle' ? hoverParam : 'stable'
-  const debugProjectHits = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugProjectHits') === '1'
-  const debugProjectTilt = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debugProjectTilt') === '1'
+export default function ProjectShowcase({ controlRef, tiltExperiment = null, tiltPreview = false, circularTextExperiment = null }) {
+  const hoverMode = 'stable'
   const introRef = useRef(null)
   const introLineRefs = useRef([])
   const introSupportRef = useRef(null)
@@ -84,10 +87,10 @@ export default function ProjectShowcase({ controlRef }) {
   const headlineRefs = useRef([])
   const descriptionRefs = useRef([])
   const hoverControlRefs = useRef([])
+  const tiltControlRefs = useRef([])
+  const tiltExperimentRef = useRef(tiltExperiment)
   const videoRefs = useRef([])
-  const progressRef = useRef(0)
-  const debugRef = useRef(null)
-  const tiltDebugRef = useRef({ velocity: 0, targets: [], currents: [] })
+  tiltExperimentRef.current = tiltExperiment
 
   useEffect(() => {
     const videos = videoRefs.current.filter(Boolean)
@@ -109,9 +112,34 @@ export default function ProjectShowcase({ controlRef }) {
   useEffect(() => {
     if (!controlRef) return undefined
     controlRef.current = {
+      getStageInfo: () => ({ items: featuredProjects, intro: INTRO_DURATION, step: PROJECT_STEP, duration: PROJECT_DURATION }),
       setProgress: value => {
         const progress = Math.max(0, Math.min(PROJECT_SEQUENCE_END, value))
-        progressRef.current = progress
+        if (tiltExperimentRef.current && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          if (introRef.current) introRef.current.style.opacity = '0'
+          projectRefs.current.forEach((project, index) => {
+            if (!project) return
+            project.dataset.projectActive = 'true'
+            project.inert = false
+            project.style.zIndex = '1'
+            project.style.opacity = '1'
+            project.style.pointerEvents = 'auto'
+            project.style.transform = 'none'
+            projectSlotRefs.current[index]?.style.setProperty('--project-travel', '0px')
+            screenshotEntranceRefs.current[index]?.style.setProperty('transform', 'none')
+            typographyEntranceRefs.current[index]?.style.setProperty('transform', 'none')
+            typographyEntranceRefs.current[index]?.style.setProperty('opacity', '1')
+            depthFrameRefs.current[index]?.style.setProperty('transform', 'none')
+            labelRefs.current[index]?.style.setProperty('opacity', '1')
+            labelRefs.current[index]?.style.setProperty('transform', 'none')
+            headlineRefs.current[index]?.style.setProperty('opacity', '1')
+            headlineRefs.current[index]?.style.setProperty('transform', 'none')
+            descriptionRefs.current[index]?.style.setProperty('opacity', '1')
+            descriptionRefs.current[index]?.style.setProperty('transform', 'none')
+            tiltControlRefs.current[index]?.setActive(true)
+          })
+          return
+        }
         const introProgress = clamp(progress)
         const introExit = clamp((progress - 0.84) / 0.16)
         const selectedReveal = clamp((progress - 0.1) / 0.2)
@@ -153,12 +181,16 @@ export default function ProjectShowcase({ controlRef }) {
             project.style.pointerEvents = 'none'
             project.style.setProperty('--watermark-y', '0px')
             projectSlotRefs.current[index]?.style.setProperty('--project-travel', '0px')
-            tiltDebugRef.current.targets[index] = { x: 0, y: 0, z: 0 }
             screenshotEntranceRefs.current[index]?.style.setProperty('transform', 'translate3d(0, 0, 0)')
             typographyEntranceRefs.current[index]?.style.setProperty('transform', 'translate3d(0, 0, 0)')
             typographyEntranceRefs.current[index]?.style.setProperty('opacity', '0')
             depthFrameRefs.current[index]?.style.setProperty('transform', 'none')
-            hoverControlRefs.current[index]?.current?.setActive(false)
+            if (tiltExperimentRef.current) {
+              project.inert = true
+              tiltControlRefs.current[index]?.setActive(false)
+            } else {
+              hoverControlRefs.current[index]?.current?.setActive(false)
+            }
             return
           }
 
@@ -177,15 +209,19 @@ export default function ProjectShowcase({ controlRef }) {
           const typographyElement = typographyEntranceRefs.current[index]
           if (screenshotElement) {
             screenshotElement.style.setProperty('--screenshot-in', `${entrance}`)
-            screenshotElement.style.transform = `translate3d(${screenshotX * (1 - entrance)}vw, ${18 * (1 - entrance)}vh, 0)`
+            screenshotElement.style.transform = `translate3d(${screenshotX * (1 - entrance)}vw, ${(18 * (1 - entrance)) - (4 * exit)}vh, 0)`
           }
           if (typographyElement) {
-            typographyElement.style.transform = `translate3d(${textX * (1 - textIn)}vw, ${16 * (1 - textIn)}vh, 0)`
-            typographyElement.style.opacity = `${textIn}`
+            typographyElement.style.transform = `translate3d(${textX * (1 - textIn)}vw, ${(16 * (1 - textIn)) - (3 * exit)}vh, 0) scale(${(1 - exit * 0.08).toFixed(4)})`
+            typographyElement.style.opacity = `${textIn * (1 - exit * 0.35)}`
           }
           project.style.setProperty('--watermark-y', `${((local * 2) - 1) * 36}px`)
           // Keep only the project in its progress interval event-enabled.
           project.style.pointerEvents = active ? 'auto' : 'none'
+          if (tiltExperimentRef.current) {
+            project.inert = !active
+            tiltControlRefs.current[index]?.setActive(active)
+          }
           const labelReveal = clamp(local / 0.12)
           const headlineReveal = clamp((local - 0.035) / 0.165)
           const descriptionReveal = clamp((local - 0.09) / 0.15)
@@ -208,143 +244,38 @@ export default function ProjectShowcase({ controlRef }) {
           const depthFrame = depthFrameRefs.current[index]
           const yawStart = index === 0 ? -22 : index === 1 ? 22 : 0
           const yawHero = index === 0 ? -3 : index === 1 ? 3 : 0
-          const pitch = mix(14, mix(2, -8, exit), hero)
-          const yaw = mix(yawStart, yawHero, hero)
-          const depth = mix(-220, mix(60, -120, exit), hero)
-          const scale = mix(0.76, mix(1, 0.9, exit), hero)
+          const heroPitch = mix(14, 2, hero)
+          const pitch = mix(heroPitch, -18, exit)
+          const heroYaw = mix(yawStart, yawHero, hero)
+          const exitYaw = index === 0 ? 14 : index === 1 ? -14 : 0
+          const yaw = mix(heroYaw, exitYaw, exit)
+          const heroDepth = mix(-220, 60, hero)
+          const depth = mix(heroDepth, -350, exit)
+          const heroScale = mix(0.76, 1, hero)
+          const scale = mix(heroScale, 0.68, exit)
           if (depthFrame) {
-            const debugTransform = debugProjectTilt
-              ? 'translateZ(0px) rotateY(0deg) rotateX(0deg) rotateZ(12deg) scale(1)'
-              : `translateZ(${depth.toFixed(2)}px) rotateY(${yaw.toFixed(2)}deg) rotateX(${pitch.toFixed(2)}deg) scale(${scale.toFixed(4)})`
-            depthFrame.style.transform = debugTransform
+            depthFrame.style.transform = `translateZ(${depth.toFixed(2)}px) rotateY(${yaw.toFixed(2)}deg) rotateX(${pitch.toFixed(2)}deg) scale(${scale.toFixed(4)})`
             depthFrame.style.opacity = `${mix(0.08, 1, entrance) * (1 - exit * 0.2)}`
           }
 
           const image = imageRefs.current[index]
           if (!image) {
-            hoverControlRefs.current[index]?.current?.setActive(active)
+            if (!tiltExperimentRef.current) hoverControlRefs.current[index]?.current?.setActive(active)
             return
           }
-          const mediaX = debugProjectTilt ? 0 : pitch
-          const mediaY = debugProjectTilt ? 0 : yaw
-          const mediaZ = debugProjectTilt ? 12 : 0
-          const mediaScale = debugProjectTilt ? 1 : scale
-          tiltDebugRef.current.currents[index] = { x: mediaX, y: mediaY, z: mediaZ, scale: mediaScale }
-          if (debugProjectTilt) {
-            tiltDebugRef.current.targets[index] = { x: 0, y: 0, z: 12 }
-          } else {
-            tiltDebugRef.current.targets[index] = { x: pitch, y: yaw, z: 0 }
-          }
-          hoverControlRefs.current[index]?.current?.setActive(active)
+          if (!tiltExperimentRef.current) hoverControlRefs.current[index]?.current?.setActive(active)
         })
       },
     }
     controlRef.current.setProgress(0)
     return () => {
       depthFrameRefs.current.forEach(frame => { if (frame) frame.style.transform = 'none' })
-      tiltDebugRef.current.targets = []
-      tiltDebugRef.current.currents = []
       controlRef.current = null
     }
-  }, [controlRef, debugProjectTilt])
-
-  useEffect(() => {
-    if ((!debugProjectHits && !debugProjectTilt) || !debugRef.current) return undefined
-
-    const overlay = debugRef.current
-    let outlinedElement = null
-    let previousOutline = ''
-    let previousOutlineOffset = ''
-    let lastLoggedAt = 0
-
-    const describe = element => {
-      if (!element) return '—'
-      const tag = element.tagName?.toLowerCase() || 'unknown'
-      const classes = typeof element.className === 'string' ? element.className.replace(/\s+/g, '.').slice(0, 100) : ''
-      return `${tag}${classes ? `.${classes}` : ''}`
-    }
-    const rectText = element => {
-      if (!element) return '—'
-      const rect = element.getBoundingClientRect()
-      return `x${Math.round(rect.x)} y${Math.round(rect.y)} w${Math.round(rect.width)} h${Math.round(rect.height)}`
-    }
-
-    const lastPointer = { x: null, y: null, stack: [], outsideCover: null }
-    const renderDebug = () => {
-      const activeIndex = projectRefs.current.findIndex(project => project?.dataset.projectActive === 'true')
-      const anchor = activeIndex >= 0 ? imageRefs.current[activeIndex] : null
-      const frame = activeIndex >= 0 ? depthFrameRefs.current[activeIndex] : null
-      const tilt = tiltDebugRef.current
-      const target = activeIndex >= 0 ? tilt.targets[activeIndex] : null
-      const current = activeIndex >= 0 ? tilt.currents[activeIndex] : null
-      const pointerText = lastPointer.x === null ? '—' : `${Math.round(lastPointer.x)}, ${Math.round(lastPointer.y)}`
-      const stackText = lastPointer.stack.slice(0, 8).map(describe).join('\n') || '—'
-      overlay.textContent = [
-        `active project: ${activeIndex >= 0 ? activeIndex + 1 : 'none'}  progress: ${progressRef.current.toFixed(3)}`,
-        `pointer: ${pointerText}`,
-        `tilt mode: ${debugProjectTilt ? 'FORCED +12° Z' : 'scroll progress'}`,
-        `target tilt: ${target ? `${target.x.toFixed(2)}° X / ${target.y.toFixed(2)}° Y / ${target.z.toFixed(2)}° Z` : '—'}`,
-        `current tilt: ${current ? `${current.x.toFixed(2)}° X / ${current.y.toFixed(2)}° Y / ${current.z.toFixed(2)}° Z` : '—'}`,
-        `rotation element: ${describe(frame) || '—'}`,
-        `computed media transform: ${frame ? getComputedStyle(frame).transform : '—'}`,
-        `topmost receiving: ${describe(lastPointer.stack.find(element => getComputedStyle(element).pointerEvents !== 'none'))}`,
-        `anchor: ${describe(anchor)}  ${rectText(anchor)}`,
-        `media frame: ${describe(frame)}  ${rectText(frame)}`,
-        `outside-anchor cover: ${describe(lastPointer.outsideCover)}`,
-        `elementsFromPoint (top → bottom):\n${stackText}`,
-      ].join('\n')
-    }
-
-    const onPointerMove = event => {
-      const stack = document.elementsFromPoint(event.clientX, event.clientY)
-      const receivingStack = stack.filter(element => getComputedStyle(element).pointerEvents !== 'none')
-      const activeIndex = projectRefs.current.findIndex(project => project?.dataset.projectActive === 'true')
-      const anchor = activeIndex >= 0 ? imageRefs.current[activeIndex] : null
-      const frame = activeIndex >= 0 ? depthFrameRefs.current[activeIndex] : null
-      const outsideCover = receivingStack.find(element => {
-        if (!element || element === overlay || element === document.documentElement || element === document.body) return false
-        if (!anchor) return true
-        return !anchor.contains(element) && !element.contains(anchor)
-      })
-
-      if (outlinedElement && outlinedElement !== outsideCover) {
-        outlinedElement.style.outline = previousOutline
-        outlinedElement.style.outlineOffset = previousOutlineOffset
-      }
-      if (outsideCover && outsideCover !== overlay) {
-        if (outlinedElement !== outsideCover) {
-          previousOutline = outsideCover.style.outline
-          previousOutlineOffset = outsideCover.style.outlineOffset
-        }
-        outsideCover.style.outline = '2px solid #ff3b81'
-        outsideCover.style.outlineOffset = '-2px'
-      }
-      outlinedElement = outsideCover
-      lastPointer.x = event.clientX
-      lastPointer.y = event.clientY
-      lastPointer.stack = stack
-      lastPointer.outsideCover = outsideCover
-      if (performance.now() - lastLoggedAt > 120) {
-        lastLoggedAt = performance.now()
-        console.debug('[project-hit]', { activeProject: activeIndex + 1 || null, progress: progressRef.current, topmost: describe(receivingStack[0]), outsideAnchorCover: describe(outsideCover) })
-      }
-      renderDebug()
-    }
-
-    document.addEventListener('pointermove', onPointerMove, true)
-    const debugInterval = window.setInterval(renderDebug, 80)
-    return () => {
-      document.removeEventListener('pointermove', onPointerMove, true)
-      window.clearInterval(debugInterval)
-      if (outlinedElement) {
-        outlinedElement.style.outline = previousOutline
-        outlinedElement.style.outlineOffset = previousOutlineOffset
-      }
-    }
-  }, [debugProjectHits, debugProjectTilt])
+  }, [controlRef])
 
   return (
-    <section className={styles.showcase} data-project-showcase aria-label="Featured projects">
+    <section className={styles.showcase} data-project-showcase data-project-tilt-preview={tiltPreview ? 'true' : undefined} aria-label="Featured projects">
       <div ref={introRef} className={styles.intro}>
         <h2 className={styles.introTitle}>
           <span className={styles.introMask}><span ref={element => { introLineRefs.current[0] = element }}>SELECTED</span></span>
@@ -360,6 +291,25 @@ export default function ProjectShowcase({ controlRef }) {
               <div ref={element => { screenshotEntranceRefs.current[index] = element }} className={styles.screenshotEntrance}>
                 <div className={styles.perspectiveScene}>
                   <div ref={element => { depthFrameRefs.current[index] = element }} className={styles.depthFrame}>
+                    {tiltExperiment ? (
+                      <div ref={element => { mediaFrameRefs.current[index] = element }} className={`${styles.mediaFrame} ${styles[`glow${index}`]}`}>
+                        <Suspense fallback={<div className={styles.media}><ProjectMedia project={project} index={index} videoRef={element => { videoRefs.current[index] = element }} /></div>}>
+                          <ProjectTiltCard
+                            ref={element => { tiltControlRefs.current[index] = element }}
+                            project={{ ...project, number: index + 1 }}
+                            liveUrl={project.live}
+                            media={(
+                              <div className={styles.media}>
+                                <ProjectMedia project={project} index={index} videoRef={element => { videoRefs.current[index] = element }} />
+                                {!circularTextExperiment && <span className={styles.visitProject} aria-hidden="true"><span className={styles.visitArrow}>↗</span></span>}
+                              </div>
+                            )}
+                            tilt={tiltExperiment}
+                            circularText={circularTextExperiment}
+                          />
+                        </Suspense>
+                      </div>
+                    ) : (
                     <ProjectHoverEffect mode={hoverMode} filterId={`project-distortion-${index}`} href={projectUrls[index]} linkRef={element => { imageRefs.current[index] = element }} linkClassName={styles.projectMediaLink} controlRef={hoverControlRefs.current[index] ?? (hoverControlRefs.current[index] = { current: null })} ariaLabel={`View ${project.title} live project`}>
                       <div ref={element => { mediaFrameRefs.current[index] = element }} className={`${styles.mediaFrame} ${styles[`glow${index}`]}`}>
                     <div className={styles.media}>
@@ -376,6 +326,7 @@ export default function ProjectShowcase({ controlRef }) {
                     </div>
                       </div>
                     </ProjectHoverEffect>
+                    )}
                   </div>
                 </div>
               </div>
@@ -397,7 +348,6 @@ export default function ProjectShowcase({ controlRef }) {
           </div>
         ))}
       </div>
-      {(debugProjectHits || debugProjectTilt) ? <pre ref={debugRef} className={styles.projectHitDebug} aria-hidden="true" /> : null}
     </section>
   )
 }

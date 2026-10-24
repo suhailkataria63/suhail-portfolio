@@ -10,19 +10,36 @@
 
 .kinetic {
   position: absolute;
-  top: 11%;
+  top: 50%;
   left: 7vw;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   font: 800 clamp(60px, 11vw, 170px)/0.78 'Inter Variable', Arial, sans-serif;
   letter-spacing: -0.095em;
+  transform: translateY(-50%);
   z-index: 2;
 }
+.ditherVisual { position: absolute; z-index: 1; top: 50%; right: 8vw; width: min(31vw, 440px); aspect-ratio: 0.78; transform: translateY(-50%); display: none; opacity: 0; overflow: hidden; pointer-events: none; }
+.ditherVisual :global(.dither-veil) { width: 100%; height: 100%; }
+:global(main[data-dither-veil-preview='true']) .scene .kinetic { top: 11%; left: 7vw; transform: none; }
+:global(main[data-dither-veil-preview='true']) .scene[data-dither-veil-active='true'] .kinetic { left: 4.5vw; max-width: 64vw; }
+:global(main[data-dither-veil-preview='true']) .scene[data-dither-veil-active='true'] .kinetic p { width: min(40vw, 480px); }
+:global(main[data-dither-veil-preview='true']) .scene[data-dither-veil-active='true'] .kinetic > span:not(.sectionLabel) { white-space: nowrap; }
+:global(main[data-dither-veil-preview='true']) .scene[data-dither-veil-active='true'] .ditherVisual { right: 4vw; width: min(26vw, 360px); }
+:global(main[data-dither-veil-production='true']) .scene .ditherVisual { right: 4vw; width: min(26vw, 360px); }
+.sectionLabel { position: absolute; top: -34px; left: 0; color: #60728b; font: 600 11px/1 'Inter Variable', Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
 .kinetic > span { display: block; will-change: transform, opacity; }
 .kinetic p { width: min(480px, 72vw); margin: 28px 0 0; color: #53647e; font: 450 clamp(15px, 1.35vw, 21px)/1.35 'Inter Variable', Arial, sans-serif; letter-spacing: -0.025em; will-change: transform, opacity; }
 .code { position: relative; color: #fff; -webkit-text-stroke: 1.5px #18253a; }
 .code > span { position: absolute; inset: 0; color: #18253a; opacity: 0; -webkit-text-stroke: 0; pointer-events: none; }
+.code.gradientCode { color: #18253a; -webkit-text-stroke: 0; }
+/* Inline spans keep the native CODE. shaping and line box. The supplied
+   component's standalone inline-flex layout is unnecessary inside this row. */
+.gradientCode > .gradientWord { position: relative; inset: auto; display: inline; max-width: none; color: inherit; opacity: 1; font: inherit; letter-spacing: inherit; }
+.gradientWord :global(.gradient-text__inner),
+.gradientWord :global(.gradient-text__content) { display: inline; font: inherit; letter-spacing: inherit; }
+.gradientCode > .metallicWord { position: relative; inset: auto; display: inline-block; opacity: 1; color: inherit; font: inherit; letter-spacing: inherit; }
 
 .constellationStage { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; pointer-events: none; }
 .compositionCopy { position: absolute; z-index: 2; left: 7vw; top: 24%; width: min(37vw, 520px); color: #101722; opacity: 0; will-change: opacity; pointer-events: none; }
@@ -46,17 +63,70 @@
 .node:hover i, .node:focus-visible i, .node.focused i { border-color: #18253a; box-shadow: 0 0 0 4px #a8b8ca44, 0 6px 14px #40577866; transform: scale(1.12); }
 .node:focus-visible { outline: 2px solid #53647e; outline-offset: 5px; }
 .skillNote { position: absolute; left: 50%; bottom: 5%; width: min(360px, 70vw); transform: translateX(-50%); color: #53647e; font: 450 14px/1.35 'Inter Variable', Arial, sans-serif; text-align: center; pointer-events: none; }
+/* Opt-in reactions touch only icon/label paint. The existing scene writer
+   retains exclusive control of node positions, transforms and opacity. */
+.toolkitReactive .node i { position: relative; transition: filter var(--toolkit-highlight-duration) ease; }
+.toolkitReactive .node span { transition: color var(--toolkit-highlight-duration) ease, filter var(--toolkit-highlight-duration) ease; }
+.toolkitReactive .node i::after,
+.toolkitReactive .sphere::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; box-shadow: 0 0 14px 3px var(--toolkit-highlight-color); opacity: 0; pointer-events: none; transition: opacity var(--toolkit-highlight-duration) ease; }
+.toolkitReactive .node[data-toolkit-lit='true'] i { filter: brightness(var(--toolkit-node-brightness)); }
+.toolkitReactive .node[data-toolkit-lit='true'] i::after { opacity: var(--toolkit-glow); }
+.toolkitReactive .node[data-toolkit-lit='true'] span { color: var(--toolkit-highlight-color); filter: brightness(var(--toolkit-label-brightness)); }
+.toolkitReactive .sphere { transition: filter var(--toolkit-highlight-duration) ease; }
+.toolkitReactive .sphere[data-toolkit-lit='true'] { filter: brightness(calc(1 + (var(--toolkit-node-brightness) - 1) * 0.3)); }
+.toolkitReactive .sphere[data-toolkit-lit='true']::after { opacity: calc(var(--toolkit-glow) * 0.5); }
 .finalStatement { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; opacity: 0; text-align: center; will-change: transform, opacity; }
 .finalStatement span { display: block; font: 800 clamp(70px, 13vw, 200px)/.78 'Inter Variable', Arial, sans-serif; letter-spacing: -.1em; }
+/* Preview-only visual reduction preserves both original row boxes, keeping
+   the paragraph fixed. Bottom/top anchoring centers the smaller two-line
+   headline inside the original headline footprint without scene offsets. */
+.finalStatement .curiosityAlways { position: relative; }
+.curiosityAlways .curiosityAlwaysAnchor { visibility: hidden; font: inherit; letter-spacing: inherit; }
+.curiosityAlways .curiosityAlwaysVisual { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font: inherit; line-height: .78; letter-spacing: -.1em; white-space: nowrap; }
 .finalStatement p { width: min(420px, 80vw); margin: 30px auto 0; color: #53647e; font: 450 clamp(16px, 1.5vw, 24px)/1.35 'Inter Variable', Arial, sans-serif; }
+
+/* The Ghost Fibers experiment runs behind all three Beyond scenes. Keep its
+   finer strands quiet directly beneath supporting copy, without adding a
+   visible panel or changing the production scene. */
+:global([data-ghost-fibers='enabled']) .kinetic p,
+:global([data-ghost-fibers='enabled']) .sectionLabel,
+:global([data-ghost-fibers='enabled']) .compositionCopy > span,
+:global([data-ghost-fibers='enabled']) .compositionCopy p,
+:global([data-ghost-fibers='enabled']) .finalStatement p {
+  position: relative;
+  isolation: isolate;
+}
+
+:global([data-ghost-fibers='enabled']) .kinetic p::before,
+:global([data-ghost-fibers='enabled']) .sectionLabel::before,
+:global([data-ghost-fibers='enabled']) .compositionCopy > span::before,
+:global([data-ghost-fibers='enabled']) .compositionCopy p::before,
+:global([data-ghost-fibers='enabled']) .finalStatement p::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -0.8em -1.15em;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.78) 48%, rgba(255, 255, 255, 0) 82%);
+  filter: blur(11px);
+  pointer-events: none;
+}
 
 @keyframes orbitalDrift { 0% { transform: rotateX(7deg) rotateZ(-3deg) translate3d(0, 0, 0); } 100% { transform: rotateX(-7deg) rotateZ(3deg) translate3d(0, -8px, 0); } }
 
 @media (max-width: 1000px) { .compositionCopy { width: 40vw; } .compositionCopy h2 { font-size: clamp(46px, 7vw, 82px); } .constellation { right: 0; width: 59vw; } }
 @media (max-width: 700px) {
-  .kinetic { top: 10%; left: 7vw; font-size: clamp(48px, 14vw, 94px); }
+  .kinetic { top: 50%; left: 7vw; font-size: clamp(48px, 14vw, 94px); }
+  .ditherVisual { top: 65%; right: 6vw; width: min(54vw, 260px); max-height: 31vh; }
+  :global(main[data-dither-veil-preview='true']) .scene .kinetic { top: 10%; left: 7vw; transform: none; }
+  :global(main[data-dither-veil-preview='true']) .scene[data-dither-veil-active='true'] .kinetic { left: 5vw; max-width: 88vw; }
+  :global(main[data-dither-veil-preview='true']) .scene[data-dither-veil-active='true'] .kinetic p { width: 84vw; }
+  :global(main[data-dither-veil-preview='true']) .scene[data-dither-veil-active='true'] .ditherVisual { top: 65%; right: 6vw; width: min(32vw, 180px); max-height: none; }
+  :global(main[data-dither-veil-production='true']) .scene .ditherVisual { top: 65%; right: 6vw; width: min(32vw, 180px); max-height: none; }
+  .sectionLabel { top: -27px; font-size: 8px; }
   .kinetic p { width: 84vw; margin-top: 20px; font-size: 15px; }
   .compositionCopy { left: 7vw; top: 14%; width: 86vw; }
+  .toolkitTypeScene .compositionCopy { top: 10%; }
   .compositionCopy > span { margin-bottom: 16px; }
   .compositionCopy h2 { font-size: clamp(42px, 12vw, 76px); }
   .compositionCopy p { margin-top: 18px; font-size: 15px; }
@@ -68,3 +138,7 @@
   .finalStatement span { font-size: clamp(58px, 17vw, 112px); }
 }
 @media (prefers-reduced-motion: reduce) { .scene { display: block; } .orbitSystem { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .toolkitReactive .node i, .toolkitReactive .node span, .toolkitReactive .node i::after,
+  .toolkitReactive .sphere, .toolkitReactive .sphere::after { transition: none; }
+}

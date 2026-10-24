@@ -10,6 +10,15 @@
 
 .scene::before { content: ''; position: absolute; inset: 0; z-index: 0; background: #fff; opacity: var(--builder-bg, 0); }
 
+.statementDepth {
+  position: absolute;
+  inset: 0;
+  perspective: 900px;
+  transform-origin: center center;
+  will-change: transform, opacity, filter;
+  pointer-events: none;
+}
+
 .statement {
   position: absolute;
   top: 17%;
@@ -28,28 +37,85 @@
   will-change: transform, opacity;
 }
 
+.creativeTypeScene .line,
+.strokeTextScene .line { position: relative; }
+
+.wordMeasure { position: absolute; inset: 0 auto auto 0; width: max-content; visibility: hidden; white-space: pre; pointer-events: none; }
+.designingAnchor { display: inline-block; height: 1em; line-height: inherit; vertical-align: baseline; visibility: hidden; white-space: nowrap; }
+.strokeTextVisual { position: absolute; top: 0; left: 0; display: block; line-height: 0; pointer-events: none; }
+.exploringWordAnchor { position: relative; display: inline-block; box-sizing: border-box; width: max-content; height: 1em; line-height: inherit; vertical-align: baseline; white-space: nowrap; padding-inline-end: var(--outline-right-reserve); }
+.strokeTextScene .designingAnchor,
+.strokeTextScene .exploringWordAnchor { height: 0.82em; }
+.strokeTextScene .designingAnchor { position: relative; }
+.baselineMeasure { display: inline-block; width: 0; height: 0; padding: 0; border: 0; vertical-align: baseline; }
+.exploringAnchorText { visibility: hidden; }
+.maskViewport { position: absolute; top: 0; left: 0; display: block; }
+.maskFallback { position: absolute; top: 0; left: 0; display: inline-block; color: transparent; white-space: nowrap; }
+
 .solid { color: #101722; }
 .outline {
   color: transparent;
   -webkit-text-stroke: 1.5px #101722;
   /* Preserve the original reveal mask while reserving room for the stroke
      beyond the final glyph advance. */
-  padding-inline-end: 0.06em;
+  --outline-right-reserve: 0.06em;
+  padding-inline-end: var(--outline-right-reserve);
 }
+.maskedLine { padding-inline-end: var(--mask-paint-overflow, 0px); }
+/* The shared glyph clip already contains this preview's video fill. Chrome
+   exposes the redundant row crop as a seam when the scene scales the videos. */
+.strokeTextScene .maskedLine { overflow: visible; }
 .building { display: flex; align-items: baseline; gap: 0.22em; }
-.building em { color: #53647e; font: 500 clamp(16px, 1.45vw, 24px)/1.1 'Inter Variable', Arial, sans-serif; letter-spacing: -0.04em; font-style: normal; max-width: 220px; }
+.building em { position: relative; isolation: isolate; color: #53647e; font: 500 clamp(16px, 1.45vw, 24px)/1.1 'Inter Variable', Arial, sans-serif; letter-spacing: -0.04em; font-style: normal; max-width: 220px; }
+.building em::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -0.65em -1.15em;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.7) 42%, rgba(255, 255, 255, 0) 78%);
+  filter: blur(7px);
+  pointer-events: none;
+}
 
 .intro {
   position: absolute;
   top: 42%;
   right: 7vw;
   width: min(32vw, 440px);
+  isolation: isolate;
   color: #101722;
   will-change: transform, opacity;
+}
+.intro::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -2.25rem -2.5rem;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.7) 48%, rgba(255, 255, 255, 0) 82%);
+  filter: blur(18px);
+  pointer-events: none;
 }
 
 .eyebrow { display: block; margin-bottom: 22px; color: #53647e; font: 650 10px/1.4 'Inter Variable', Arial, sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
 .intro p { margin: 0; font: 450 clamp(18px, 2vw, 30px)/1.18 'Inter Variable', Arial, sans-serif; letter-spacing: -0.045em; }
+
+/* Keep attenuation confined to the developer paragraph in the Threads lab. */
+:global([data-about-threads-enabled='true']) .building em { position: static; isolation: auto; }
+:global([data-about-threads-enabled='true']) .building em::before,
+:global([data-about-threads-enabled='true']) .intro::before { content: none; }
+:global([data-about-threads-enabled='true']) .intro p { position: relative; isolation: isolate; }
+:global([data-about-threads-enabled='true']) .intro p::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -1.25rem -1.75rem;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.7) 48%, rgba(255, 255, 255, 0) 82%);
+  filter: blur(12px);
+  pointer-events: none;
+}
 
 @media (max-width: 700px) {
   .statement { top: 15%; left: 7vw; width: 86vw; }
@@ -61,5 +127,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scene { display: none; }
+  .scene:not(.creativeTypeScene):not(.strokeTextScene) { display: none; }
 }

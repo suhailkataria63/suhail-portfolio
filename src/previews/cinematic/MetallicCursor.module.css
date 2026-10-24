@@ -1,0 +1,44 @@
+.cursor {
+  position: fixed;
+  z-index: 2147483647;
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 22.5px;
+  opacity: 0;
+  pointer-events: none;
+  --cursor-light-finish: 0;
+  --cursor-dark-finish: 1;
+}
+
+.cursor[data-visible='true'] { opacity: 1; }
+.arrow { display: block; width: 18px; height: 22.5px; overflow: visible; transform-origin: .675px .675px; transition: transform 120ms ease-out; }
+.lightFinish { opacity: var(--cursor-light-finish); }
+.darkFinish { opacity: var(--cursor-dark-finish); }
+.silhouetteLight { stroke: #283342; stroke-width: .8; stroke-linejoin: miter; }
+.silhouetteDark { stroke: #e0e6ed; stroke-width: .8; stroke-linejoin: miter; }
+.edgeLight, .edgeDark { fill: none; stroke-width: .58; stroke-linecap: round; stroke-linejoin: round; }
+.edgeLight { stroke: #fff; opacity: .86; }
+.edgeDark { stroke: #f6f8fb; opacity: .78; }
+.signatureCursor[data-hover='true'] .signatureReflection { stroke: #e2f2ff; opacity: 1; }
+.signatureArtwork .signatureReflection { stroke: #a9c8e8; opacity: .8; }
+.signatureArtwork .edgeLight.signatureReflection { stroke: #91b7df; opacity: .72; }
+.signatureCursor[data-hover='true'] .signatureArtwork .signatureReflection { stroke: #e2f2ff; opacity: 1; }
+.signatureReflection { transition: stroke 120ms ease-out, opacity 120ms ease-out; }
+
+.cursor[data-hover='true'] .arrow { transform: scale(1.05); }
+.cursor[data-hover='true'] .edgeLight, .cursor[data-hover='true'] .edgeDark { opacity: 1; }
+.cursor[data-pressed='true'] .arrow { transform: scale(.95); transition: transform 70ms ease-out; }
+
+@media (any-hover: hover) and (any-pointer: fine) {
+  :global([data-metal-cursor-scope][data-metal-cursor-ready='true']),
+  :global([data-metal-cursor-scope][data-metal-cursor-ready='true'] *) {
+    cursor: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor .arrow { transition: none !important; transform: none !important; }
+  .cursor .edgeLight, .cursor .edgeDark { transition: none !important; }
+  .signatureReflection { transition: none !important; }
+}

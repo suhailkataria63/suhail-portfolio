@@ -1,0 +1,14 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.threads {
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+}

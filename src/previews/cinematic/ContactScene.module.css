@@ -12,6 +12,7 @@
   left: 0;
   width: max-content;
   white-space: nowrap;
+  word-spacing: 0.15em;
   font: 850 clamp(76px, 14vw, 230px)/.8 'Inter Variable', Arial, sans-serif;
   letter-spacing: -.1em;
   will-change: transform, opacity;
@@ -26,6 +27,8 @@
   will-change: transform, opacity;
 }
 .copy { width: min(48vw, 600px); }
+.headlinePerspective { perspective: 1100px; transform-style: preserve-3d; transform-origin: left center; will-change: opacity; }
+:global([data-contact-metallic-enabled='true']) .headlinePerspective { position: relative; }
 .eyebrow {
   display: block;
   margin-bottom: 25px;
@@ -37,8 +40,32 @@
   margin: 0;
   font: 800 clamp(54px, 7.4vw, 120px)/.84 'Inter Variable', Arial, sans-serif;
   letter-spacing: -.085em;
-  will-change: transform;
 }
+.copy h2 > span {
+  display: block;
+  transform: none;
+  will-change: opacity;
+}
+.headlineChar {
+  display: inline-block;
+  transform-origin: center bottom;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  white-space: pre;
+  will-change: transform, opacity;
+}
+.metallicLayer {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.metallicLayer :global(.metallic-paint) { width: 100%; height: 100%; }
+.metallicLayer :global(.metallic-paint-canvas) { display: block; width: 100%; height: 100%; }
 .copy p {
   width: min(430px, 100%);
   margin: 32px 0 0;
@@ -68,7 +95,9 @@
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
   pointer-events: none;
 }
-.links a span { font-size: 16px; letter-spacing: 0; }
+.linkIdentity { display: inline-flex; align-items: center; gap: 8px; }
+.socialIcon { display: block; width: 17px; height: 17px; flex: 0 0 17px; stroke-width: 1.7; }
+.externalArrow { font-size: 16px; letter-spacing: 0; }
 .links a:hover, .links a:focus-visible { background: #1b2a40; border-color: #aebed2; }
 .links a:focus-visible { outline: 2px solid #dbe6f2; outline-offset: 5px; }
 
@@ -84,5 +113,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .scene { opacity: 1; }
-  .marquee, .layout, .copy h2, .copy p, .links { transform: none !important; }
+  .marquee, .layout, .headlinePerspective, .copy h2 > span, .headlineChar, .copy p, .links { transform: none !important; filter: none !important; opacity: 1 !important; }
 }

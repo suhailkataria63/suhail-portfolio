@@ -1,8 +1,19 @@
-import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
-import { Canvas, extend, useFrame, useThree } from '@react-three/fiber'
-import { CatmullRomCurve3, DoubleSide, MathUtils, TubeGeometry, Vector3 } from 'three'
+import { Profiler, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
+import { addAfterEffect, Canvas, extend, useFrame, useThree } from '@react-three/fiber'
+import { CatmullRomCurve3, DoubleSide, Euler, MathUtils, Quaternion, TubeGeometry, Vector3 } from 'three'
 import { FluxGeometry, OrbitBandGeometry } from './FluxGeometry'
 import { createStudioEnvironment } from './createStudioEnvironment'
+import ParticleSculpture from './ParticleSculpture'
+import RefinedMinimalSculpture from './RefinedMinimalSculpture'
+import LoadingSculpture from './LoadingSculpture'
+import FormationMorphGeometry from './FormationMorphGeometry'
+import { fitProjectedSculpture, projectedSculptureBounds } from './loaderChoreography'
+import { horizontalScanSource, useHorizontalScan } from './useHorizontalScan'
+import { HANDOFF_PERFORMANCE_DEBUG, createHandoffPerformanceRecorder } from './handoffPerformance'
+import { prepareOrbitHandoff } from './prepareOrbitHandoff'
+
+// Development-only experiment switch. Keep exactly one expensive sculpture mounted.
+const BEYOND_VISUAL = 'particle'
 
 extend({ FluxGeometry, OrbitBandGeometry })
 
@@ -38,22 +49,119 @@ function StudioLighting() {
   )
 }
 
-function FluxSculpture({ pointerRef, controlRef, animate }) {
+function FluxSculpture({ pointerRef, controlRef, animate, loaderPreview = false, lifecycleRef, loaderFormation = null, productionLoader = false, onCanvasReady, particleShape = 'ribbon', particleRevealRange = null, loaderOrbitVariant = 'original', orbitDiagnostics = null, ditherVeilReplaceParticle = false }) {
+  const { invalidate, camera, size, gl, scene } = useThree()
   const sculpture = useRef(null)
+  const scanMode = loaderFormation === 'scan'
+  const performanceRef = useRef(null)
+  if (import.meta.env.DEV && HANDOFF_PERFORMANCE_DEBUG && scanMode
+    && !lifecycleRef?.current?.noHandoff && !performanceRef.current) {
+    performanceRef.current = createHandoffPerformanceRecorder()
+  }
+  useEffect(() => {
+    const recorder = performanceRef.current
+    if (!recorder) return undefined
+    window.__orbitHandoffPerformance = recorder
+    lifecycleRef.current.handoffPerformance = recorder
+    const contextLost = () => recorder.note('WebGL context lost', lifecycleRef.current)
+    const contextRestored = () => recorder.note('WebGL context restored', lifecycleRef.current)
+    const visibilityChanged = () => recorder.note('document visibility changed', lifecycleRef.current, { documentHidden: document.hidden })
+    gl.domElement.addEventListener('webglcontextlost', contextLost)
+    gl.domElement.addEventListener('webglcontextrestored', contextRestored)
+    document.addEventListener('visibilitychange', visibilityChanged)
+    return () => {
+      gl.domElement.removeEventListener('webglcontextlost', contextLost)
+      gl.domElement.removeEventListener('webglcontextrestored', contextRestored)
+      document.removeEventListener('visibilitychange', visibilityChanged)
+      if (window.__orbitHandoffPerformance === recorder) delete window.__orbitHandoffPerformance
+      if (lifecycleRef.current.handoffPerformance === recorder) delete lifecycleRef.current.handoffPerformance
+    }
+  }, [gl, lifecycleRef])
+  useEffect(() => {
+    performanceRef.current?.note('React commit effect', lifecycleRef?.current)
+  })
+  const updateScan = useHorizontalScan(sculpture, scanMode, lifecycleRef, 1, loaderOrbitVariant === 'perspective-ellipse')
+  const scanFit = useRef({ key: '' })
   const revealGroup = useRef(null)
   const floatGroup = useRef(null)
   const outerPivot = useRef(null)
   const middlePivot = useRef(null)
   const innerPivot = useRef(null)
   const elapsed = useRef(0)
+  // Production Formation I holds the child pivots at their authored poses.
+  // Anchor the animated Euler channels to the last held pose when handoff
+  // first takes ownership; retain this anchor when normal scrolling resumes.
+  const orbitBandContinuity = useRef(null)
   const scrollProgress = useRef(0)
   const projectProgress = useRef(0)
   const aboutProgress = useRef(0)
   const aboutExit = useRef(0)
+  const sceneThreeProgress = useRef(0)
+  // Optional preview channels; ordinary callers keep the original shared
+  // progress. Geometry, rendering and the loader ownership are unchanged.
+  const particleProgress = useRef(0)
+  const helixLayoutProgress = useRef(null)
   const contactProgress = useRef(0)
   const helixGroup = useRef(null)
   const windowFit = useRef(0.14)
-  const { invalidate } = useThree()
+  const orbitMaterialState = useRef(new Map())
+  const loaderFit = useRef({ key: '', scale: 0.35 })
+  // Captures the exact pose produced by the Formation-I scan. The loader
+  // wrapper moves to the Hero window at the same time, so the Orbit itself
+  // must interpolate from this pose instead of being reset when ownership
+  // changes from the scan branch to the handoff branch.
+  const handoffPose = useRef(null)
+  const finalLoaderFrame = useRef(false)
+  const productionScene = useRef(productionLoader)
+  const diagnosticVector = useRef(new Vector3())
+  const priorLoaderPreview = useRef(loaderPreview)
+  const normalHeroFrameCount = useRef(0)
+  useEffect(() => {
+    if (priorLoaderPreview.current && !loaderPreview) {
+      normalHeroFrameCount.current = 0
+      orbitDiagnostics?.note('loader post-commit; R3F changed to normal Hero owner', { loaderPreview, previousLoaderPreview: true })
+    }
+    if (loaderPreview) normalHeroFrameCount.current = 0
+    priorLoaderPreview.current = loaderPreview
+  }, [loaderPreview, orbitDiagnostics])
+  const publishOrbitDiagnostic = () => {
+    if (!orbitDiagnostics?.enabled || !sculpture.current) return
+    const object = sculpture.current
+    object.updateWorldMatrix(true, true)
+    const worldPosition = object.getWorldPosition(new Vector3())
+    const projected = diagnosticVector.current.copy(worldPosition).project(camera)
+    const canvas = gl.domElement.getBoundingClientRect()
+    const wrapper = gl.domElement.closest('[data-sculpture-window]')
+    const wrapperRect = wrapper?.getBoundingClientRect()
+    orbitDiagnostics.updateOrbit({
+      source: 'R3F useFrame · live Orbit world transform projected by active camera',
+      worldPosition: object.getWorldPosition(new Vector3()).toArray(),
+      worldQuaternion: object.getWorldQuaternion(new Quaternion()).toArray(),
+      worldScale: object.getWorldScale(new Vector3()).toArray(),
+      projectedCenter: { x: canvas.left + ((projected.x + 1) / 2) * canvas.width, y: canvas.top + ((1 - projected.y) / 2) * canvas.height, ndc: projected.toArray() },
+      camera: { position: camera.position.toArray(), quaternion: camera.quaternion.toArray(), fov: camera.fov, aspect: camera.aspect, near: camera.near, far: camera.far, projection: camera.projectionMatrix.toArray() },
+      canvasRect: { left: canvas.left, top: canvas.top, width: canvas.width, height: canvas.height },
+      clippingWindowRect: wrapperRect ? { left: wrapperRect.left, top: wrapperRect.top, width: wrapperRect.width, height: wrapperRect.height, right: wrapperRect.right, bottom: wrapperRect.bottom } : null,
+      visible: object.visible,
+      loader: lifecycleRef?.current ? { phase: lifecycleRef.current.phase, handoff: lifecycleRef.current.handoff, committed: lifecycleRef.current.handoffCommitted, scanProgress: lifecycleRef.current.scanProgress } : null,
+      scroll: { progress: scrollProgress.current, projects: projectProgress.current, about: aboutProgress.current, sceneThree: sceneThreeProgress.current, windowFit: windowFit.current },
+      wrapperCss: wrapper ? { sculptureX: wrapper.style.getPropertyValue('--sculpture-x'), sculptureY: wrapper.style.getPropertyValue('--sculpture-y'), sculptureWidth: wrapper.style.getPropertyValue('--sculpture-width'), sculptureHeight: wrapper.style.getPropertyValue('--sculpture-height'), loaderLeft: wrapper.style.getPropertyValue('--loader-left'), loaderTop: wrapper.style.getPropertyValue('--loader-top'), loaderCanvasX: wrapper.style.getPropertyValue('--loader-canvas-x'), loaderCanvasY: wrapper.style.getPropertyValue('--loader-canvas-y') } : null,
+    })
+  }
+  useEffect(() => {
+    if (!productionLoader || !scanMode || !sculpture.current) return undefined
+    // Lighting and private environments have mounted before this passive
+    // effect. Readiness starts the unchanged timeline only after preparation.
+    // All temporary material/renderer edits are restored synchronously.
+    try {
+      prepareOrbitHandoff(gl, scene, camera, sculpture.current, performanceRef.current, lifecycleRef.current)
+    } catch (error) {
+      performanceRef.current?.note('handoff preparation failed', lifecycleRef.current, { message: String(error) })
+      // Preserve the existing drawable-Canvas/error fallback if warmup fails.
+    }
+    const frame = requestAnimationFrame(() => onCanvasReady?.())
+    return () => cancelAnimationFrame(frame)
+  }, [productionLoader, scanMode, gl, scene, camera, lifecycleRef, onCanvasReady])
   const helixGeometry = useMemo(() => [0, Math.PI].map(phase => {
     const points = Array.from({ length: 49 }, (_, index) => {
       const t = (index / 48) * Math.PI * 2
@@ -83,6 +191,7 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
         // GSAP owns the progress value outside React. Always request a frame
         // after updating it so demand-mode roots cannot display a stale scene.
         setProgress: value => {
+          lifecycleRef?.current?.handoffDebug?.record('scroll.setProgress', value)
           scrollProgress.current = value
           projectProgress.current = Math.max(0, Math.min(1, value - 1))
           invalidate()
@@ -95,11 +204,18 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
           aboutExit.current = Math.max(0, Math.min(1, value))
           invalidate()
         },
-        setContactProgress: value => {
+        setSceneThreeProgress: (value, particleValue = value) => {
+          sceneThreeProgress.current = Math.max(0, Math.min(1, value))
+          particleProgress.current = Math.max(0, Math.min(1, particleValue))
+          invalidate()
+        },
+        setContactProgress: (value, layoutValue = null) => {
           contactProgress.current = Math.max(0, Math.min(1, value))
+          helixLayoutProgress.current = layoutValue
           invalidate()
         },
         setViewport: (width, height) => {
+          lifecycleRef?.current?.handoffDebug?.record('scroll.setViewport', { width, height })
           if (width <= 0 || height <= 0) return
           // The DOM window is the clipping viewport. Keep the WebGL drawing
           // buffer stable and only update the uniform sculpture fit.
@@ -110,7 +226,7 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
         },
       }
     }
-    if (!animate && sculpture.current) {
+    if (!animate && !loaderPreview && sculpture.current) {
       sculpture.current.rotation.set(0.12, -0.42, -0.25)
       sculpture.current.position.set(0, 0, 0)
       invalidate()
@@ -118,9 +234,255 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
     return () => {
       if (controlRef) controlRef.current = null
     }
-  }, [animate, controlRef, invalidate])
+  }, [animate, controlRef, invalidate, loaderPreview])
+
+  // Keep each independent motion function, but apply its change since the
+  // ownership boundary to the actual held pose: theta(t) = thetaHeld +
+  // f(t) - f(t0). At t0 the change is exactly zero, including the sine channels.
+  // No single elapsed-time value can reproduce all three authored ring poses.
+  const updateOrbitBands = time => {
+    if (!orbitV2) return
+    const anchor = orbitBandContinuity.current
+    if (outerPivot.current) {
+      outerPivot.current.rotation.y = anchor
+        ? anchor.outer.y + (time - anchor.time) * 0.075
+        : time * 0.075
+      outerPivot.current.rotation.x = anchor
+        ? anchor.outer.x + (Math.sin(time * 0.17) - Math.sin(anchor.time * 0.17)) * 0.035
+        : Math.sin(time * 0.17) * 0.035
+    }
+    if (middlePivot.current) {
+      middlePivot.current.rotation.x = anchor
+        ? anchor.middle.x - (time - anchor.time) * 0.125
+        : -time * 0.125
+      middlePivot.current.rotation.z = anchor
+        ? anchor.middle.z + (Math.sin(time * 0.21 + 1.1) - Math.sin(anchor.time * 0.21 + 1.1)) * 0.06
+        : Math.sin(time * 0.21 + 1.1) * 0.06
+    }
+    if (innerPivot.current) {
+      innerPivot.current.rotation.z = anchor
+        ? anchor.inner.z + (time - anchor.time) * 0.19
+        : time * 0.19
+      innerPivot.current.rotation.y = anchor
+        ? anchor.inner.y + (Math.sin(time * 0.13 + 2.2) - Math.sin(anchor.time * 0.13 + 2.2)) * 0.1
+        : Math.sin(time * 0.13 + 2.2) * 0.1
+    }
+  }
 
   useFrame((_, delta) => {
+    if (performanceRef.current && lifecycleRef?.current) {
+      performanceRef.current.sample(delta, lifecycleRef.current, gl, camera, scene)
+    }
+    const inspection = lifecycleRef?.current?.handoffDebug
+    if (inspection?.frozen && inspection.pending !== 'SCAN_COMPLETE') return
+    if (loaderPreview && scanMode && sculpture.current
+      && lifecycleRef?.current?.phase !== 'handoff'
+      && lifecycleRef?.current?.phase !== 'settling') {
+      const state = lifecycleRef.current
+      const object = sculpture.current
+      const box = state.scanBounds
+      object.visible = Boolean(box)
+      // No growth or pose changes during the scan. The material mask is the
+      // sole visibility owner, and this branch alone owns the Orbit transform.
+      if (box) {
+        const key = `${size.width}:${size.height}:${box.width}:${box.height}`
+        if (scanFit.current.key !== key) {
+          object.position.set(0, 0, 0)
+          object.rotation.set(0.12, -0.42, -0.25)
+          const widthFit = fitProjectedSculpture(object, camera, size.width, size.height, box.width)
+          object.scale.setScalar(widthFit)
+          let bounds = projectedSculptureBounds(object, camera, size.width, size.height)
+          // Uniform fit preserves the original Orbit proportions. Match its
+          // projected bounding center and fit within the cluster's envelope.
+          object.scale.multiplyScalar(Math.min(1, box.height / bounds.height))
+          bounds = projectedSculptureBounds(object, camera, size.width, size.height)
+          const depth = new Vector3(0, 0, 0).project(camera).z
+          const from = new Vector3((bounds.left + bounds.width / 2) / size.width * 2 - 1, 1 - (bounds.top + bounds.height / 2) / size.height * 2, depth).unproject(camera)
+          const to = new Vector3((box.left + box.width / 2) / size.width * 2 - 1, 1 - (box.top + box.height / 2) / size.height * 2, depth).unproject(camera)
+          object.position.copy(to.sub(from))
+          scanFit.current.key = key
+        }
+        object.rotation.y = -0.42 + (state.reducedMotion ? 0 : state.scanTurn)
+      }
+      updateScan(size.height, gl.domElement.getBoundingClientRect())
+      if (helixGroup.current) helixGroup.current.visible = false
+      publishOrbitDiagnostic()
+      return
+    }
+    if (loaderPreview) {
+      const state = lifecycleRef.current
+      const completed = state.phase === 'complete'
+      const reveal = completed ? 1 : state.orbitReveal
+      const travel = completed && !state.noHandoff ? 1 : state.handoff
+      // Isolated experiments with noHandoff remain on their existing centered
+      // presentation; only production's Hero transfer captures this pose.
+      const handingOff = state.phase === 'handoff' || state.phase === 'settling' || (completed && !state.noHandoff)
+      let inspectPreCommit = false
+      if (animate && reveal > 0) elapsed.current += Math.min(delta, 0.05)
+      const debug = state.handoffDebug
+      const captureFirstBandWrite = debug?.enabled && handingOff && !debug.bandUpdate
+      const readBandRotations = () => [outerPivot, middlePivot, innerPivot].flatMap(ref => ref.current ? [{
+        name: ref.current.name, quaternion: ref.current.quaternion.toArray(), euler: ref.current.rotation.toArray(),
+      }] : [])
+      const beforeBandWrite = captureFirstBandWrite ? readBandRotations() : null
+      if (scanMode && handingOff && !state.noHandoff && orbitV2 && !orbitBandContinuity.current
+        && outerPivot.current && middlePivot.current && innerPivot.current) {
+        // Capture before the first band write, after the existing shared clock
+        // update. Both this first call and later normal Hero calls use the same
+        // clock and anchor; changing loaderPreview never resets either one.
+        orbitBandContinuity.current = {
+          time: elapsed.current,
+          outer: outerPivot.current.rotation.clone(),
+          middle: middlePivot.current.rotation.clone(),
+          inner: innerPivot.current.rotation.clone(),
+        }
+      }
+      updateOrbitBands(elapsed.current)
+      if (captureFirstBandWrite) {
+        debug.captureBandWrite(beforeBandWrite, readBandRotations(), elapsed.current)
+        debug.request('HANDOFF_FIRST_UPDATE')
+      }
+      if (sculpture.current) {
+        const object = sculpture.current
+        object.visible = reveal > 0.001
+        // The scan branch owns the final formation pose. Capture it on the
+        // first handoff frame before writing anything, then interpolate to
+        // the normal Hero pose while the clipping window travels home. The
+        // previous implementation reset position/rotation/scale here, which
+        // created the visible "second Orbit" snap.
+        if (handingOff && !handoffPose.current) {
+          handoffPose.current = {
+            position: object.position.clone(),
+            quaternion: object.quaternion.clone(),
+            scale: object.scale.clone(),
+            targetQuaternion: new Quaternion(),
+          }
+        }
+        const targetEuler = new Euler(0.12, -0.42 + elapsed.current * 0.12, -0.25)
+        const targetQuaternion = handoffPose.current?.targetQuaternion
+        if (targetQuaternion) targetQuaternion.setFromEuler(targetEuler)
+        const fitKey = `${size.width}:${size.height}:${state.clusterPixels}`
+        // Handoff uses the captured scan scale and measured Hero scale below.
+        // Its first frame does not need the legacy loader fit's twelve
+        // projected-bounds traversals (their result is unused during travel).
+        if (!(scanMode && handingOff) && loaderFit.current.key !== fitKey) {
+          loaderFit.current.key = fitKey
+          loaderFit.current.scale = fitProjectedSculpture(
+            object, camera, size.width, size.height,
+            Math.min(state.clusterPixels || 340, size.width * 0.82),
+          )
+        }
+        const target = state.heroTarget
+        const heroFit = target
+          ? Math.min(target.width / Math.max(window.innerWidth, 1), target.height / Math.max(window.innerHeight, 1))
+          : windowFit.current
+        // Exactly the normal Hero expression (no old minimum-scale clamp).
+        const heroScale = 0.72 * heroFit
+        if (handingOff && handoffPose.current && targetQuaternion) {
+          const handoffStart = handoffPose.current
+          const handoffT = MathUtils.clamp(travel, 0, 1)
+          if (state.handoffCommitted) object.position.set(0, 0, 0)
+          // Screen travel belongs to the Canvas CSS origin (SculptureWindow).
+          // Converge only to the normal Hero local origin here. Translating
+          // the Canvas moves every projected vertex equally, at every depth.
+          else object.position.copy(handoffStart.position).multiplyScalar(1 - handoffT)
+          object.quaternion.slerpQuaternions(handoffStart.quaternion, targetQuaternion, handoffT)
+          if (!state.handoffCommitted && handoffT >= 0.999999) {
+            if (state.handoffDebug?.enabled && !state.handoffDebug.seen.has('HANDOFF_PRE_COMMIT')) {
+              state.handoffDebug.request('HANDOFF_PRE_COMMIT')
+              inspectPreCommit = true
+            } else {
+              // At t=1 the local origin is already zero. The wrapper takes
+              // over exactly the Canvas translation before this frame draws.
+              object.position.set(0, 0, 0)
+              state.commitHandoff?.()
+              state.handoffDebug?.request('HANDOFF_POST_COMMIT')
+            }
+          }
+        } else {
+          object.position.set(0, 0, 0)
+          object.rotation.copy(targetEuler)
+        }
+        // Formation starts with an Orbit silhouette roughly matching the
+        // gathered five-form footprint. The showcase tween then grows it to
+        // the measured loader size before the clipping window travels home.
+        const orbitScaleProgress = MathUtils.clamp(state.orbitScale ?? 0, 0, 1)
+        const compactFactor = state.formationMode === 'fusion'
+          ? 0.42 + 0.58 * orbitScaleProgress
+          : 0.56 + 0.44 * orbitScaleProgress
+        const compactOrbitScale = loaderFit.current.scale * compactFactor
+        const loaderPresentationScale = MathUtils.lerp(compactOrbitScale, loaderFit.current.scale, orbitScaleProgress)
+        if (handingOff && handoffPose.current) {
+          object.scale.setScalar(MathUtils.lerp(handoffPose.current.scale.x, heroScale, MathUtils.clamp(travel, 0, 1)))
+        } else {
+          object.scale.setScalar(MathUtils.lerp(loaderPresentationScale, heroScale, travel))
+        }
+        if (travel === 1) windowFit.current = heroFit
+        object.traverse(child => {
+          if (!child.material) return
+          const material = child.material
+          // Tested Version B: production scan copies stay non-transmissive
+          // throughout travel and settling. After landing, useHorizontalScan
+          // restores the untouched original Hero materials in layout cleanup.
+          // Isolated experiments retain their existing transmission behavior.
+          const scanSource = scanMode && handingOff ? horizontalScanSource(material) : null
+          if (scanSource && 'transmission' in material) {
+            const transmission = productionLoader
+              ? 0
+              : MathUtils.lerp(0, scanSource.transmission, MathUtils.clamp(travel, 0, 1))
+            if ((material.transmission > 0) !== (transmission > 0)) {
+              performanceRef.current?.note('transmission shader/pass transition', state, {
+                material: material.uuid, from: material.transmission, to: transmission,
+              })
+              material.needsUpdate = true
+            }
+            material.transmission = transmission
+          }
+          if (!orbitMaterialState.current.has(material)) {
+            orbitMaterialState.current.set(material, {
+              transparent: material.transparent, depthWrite: material.depthWrite, opacity: material.opacity,
+            })
+          }
+          const original = orbitMaterialState.current.get(material)
+          if (!material.transparent) {
+            performanceRef.current?.note('transparent program transition', state, { material: material.uuid })
+            material.transparent = true
+            material.needsUpdate = true
+          }
+          const bandOrder = state.formationMode === 'fusion' || state.formationMode === 'progressive'
+            ? { orbitInner: 0, orbitMiddle: 1, orbitOuter: 2 }
+            : { orbitOuter: 0, orbitMiddle: 1, orbitInner: 2 }
+          const bandIndex = bandOrder[child.parent?.name]
+          const constructionReveal = (state.formationMode === 'ring' || state.formationMode === 'fusion' || state.formationMode === 'progressive') && Number.isFinite(bandIndex)
+            ? MathUtils.clamp((reveal - bandIndex * 0.18) * 1.9, 0, 1)
+            : 1
+          material.opacity = original.opacity * reveal * constructionReveal
+          material.depthWrite = original.depthWrite && reveal > 0.98 && constructionReveal > 0.98
+        })
+      }
+      if (helixGroup.current) helixGroup.current.visible = false
+      // Record the final loader pose; original Hero materials return only
+      // after movement finishes and loader ownership is released.
+      if (inspectPreCommit) return
+      if (state.phase === 'settling') {
+        if (finalLoaderFrame.current) {
+          const complete = state.onHandoffRendered
+          state.onHandoffRendered = null
+          complete?.()
+        } else finalLoaderFrame.current = true
+      } else finalLoaderFrame.current = false
+      return
+    }
+    if (orbitMaterialState.current.size) {
+      orbitMaterialState.current.forEach((state, material) => {
+        if (material.transparent !== state.transparent) material.needsUpdate = true
+        material.transparent = state.transparent
+        material.depthWrite = state.depthWrite
+        material.opacity = state.opacity
+      })
+      orbitMaterialState.current.clear()
+    }
+    if (!animate && helixGroup.current) helixGroup.current.visible = false
     if (!animate || !sculpture.current) return
     const dt = Math.min(delta, 0.05)
     elapsed.current += dt
@@ -130,6 +492,7 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
     const project = projectProgress.current
     const about = aboutProgress.current
     const builder = aboutExit.current
+    const cardsProgress = sceneThreeProgress.current
     const contact = contactProgress.current
     const heroProgress = Math.min(progress, 1)
     const horizontalPresentation = MathUtils.smoothstep(project, 0.03, 0.34)
@@ -220,25 +583,12 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
     if (revealGroup.current) {
       revealGroup.current.rotation.y = 1.15 * headingReveal
     }
-    if (orbitV2) {
-      // Each pivot has a distinct period and axis so the bands never behave
-      // like one synchronized rigid object.
-      if (outerPivot.current) {
-        outerPivot.current.rotation.y = elapsed.current * 0.075
-        outerPivot.current.rotation.x = Math.sin(elapsed.current * 0.17) * 0.035
-      }
-      if (middlePivot.current) {
-        middlePivot.current.rotation.x = -elapsed.current * 0.125
-        middlePivot.current.rotation.z = Math.sin(elapsed.current * 0.21 + 1.1) * 0.06
-      }
-      if (innerPivot.current) {
-        innerPivot.current.rotation.z = elapsed.current * 0.19
-        innerPivot.current.rotation.y = Math.sin(elapsed.current * 0.13 + 2.2) * 0.1
-      }
-    }
+    // Each band keeps its distinct period and axis, including through loading.
+    updateOrbitBands(elapsed.current)
     if (helixGroup.current) {
       const entrance = MathUtils.smoothstep(Math.max(0, Math.min((contact - 0.16) / 0.32, 1)), 0.02, 0.92)
-      const contactLayout = MathUtils.smoothstep(contact, 0.86, 0.98)
+      helixGroup.current.visible = entrance > 0.001
+      const contactLayout = MathUtils.smoothstep(helixLayoutProgress.current ?? contact, 0.86, 0.98)
       helixGroup.current.position.x = MathUtils.damp(helixGroup.current.position.x, MathUtils.lerp(0, 0.92, contactLayout), 4, dt)
       helixGroup.current.position.y = MathUtils.damp(helixGroup.current.position.y, MathUtils.lerp(-2.2, 0, entrance), 4, dt)
       helixGroup.current.position.z = MathUtils.damp(helixGroup.current.position.z, MathUtils.lerp(-0.35, 0, entrance), 4, dt)
@@ -261,7 +611,11 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
     object.scale.setScalar(MathUtils.damp(object.scale.x, targetScale, 4, dt))
     // Flux remains mounted for reverse scrolling, but an invisible transparent
     // mesh must not continue writing depth over the Contact helix.
-    const fluxVisible = fluxOpacity > 0.001
+    // SceneThree is an opaque DOM layer above the persistent canvas. During
+    // its card window the canvas is promoted above that layer by the scroll
+    // controller, so keep the underlying Orbit mesh out of that composition.
+    const cardsActive = cardsProgress > 0.001 && cardsProgress < 0.999
+    const fluxVisible = fluxOpacity > 0.001 && !cardsActive
     object.visible = fluxVisible
     object.traverse(child => {
       if (child.material) {
@@ -269,16 +623,52 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
         child.material.depthWrite = fluxVisible
       }
     })
+    publishOrbitDiagnostic()
+    if (!loaderPreview && normalHeroFrameCount.current < 8) {
+      normalHeroFrameCount.current += 1
+      orbitDiagnostics?.note(`first normal Hero frame ${normalHeroFrameCount.current}`, { progress: scrollProgress.current, objectPosition: sculpture.current?.position.toArray() })
+    }
+  })
+
+  // Capture after this root has actually rendered. The previous rAF sampler
+  // could leave a pending capture waiting on another browser callback while
+  // the buttons silently refused to advance. The R3F hook also avoids reading
+  // a pose from a different frame than the one presented by the renderer.
+  useEffect(() => {
+    const debug = lifecycleRef?.current?.handoffDebug
+    if (!debug) return undefined
+    debug.wake = invalidate
+    const removeAfterRender = addAfterEffect(() => {
+      if (!debug.enabled || !debug.pending || !sculpture.current) return
+      const state = lifecycleRef.current
+      const owner = !loaderPreview ? 'NORMAL_SCROLL' : state.phase === 'handoff' || state.phase === 'settling'
+        ? 'HERO_HANDOFF' : state.scanProgress >= 1 ? 'ORBIT_HOLD' : 'FORMATION_I'
+      debug.capture(sculpture.current, camera, gl, state, owner, elapsed.current, {
+        progress: scrollProgress.current, windowFit: windowFit.current,
+        about: aboutProgress.current, sceneThree: sceneThreeProgress.current,
+      })
+    })
+    return () => {
+      removeAfterRender()
+      if (debug.wake === invalidate) debug.wake = null
+    }
+  }, [camera, gl, invalidate, lifecycleRef, loaderPreview])
+  useFrame(() => {
+    const debug = lifecycleRef?.current?.handoffDebug
+    if (!debug?.enabled || !sculpture.current) return
+    if (!loaderPreview && debug.seen.has('HANDOFF_POST_COMMIT') && !debug.seen.has('HERO_NORMAL')) {
+      debug.request('HERO_NORMAL')
+    }
   })
 
   return (
     <>
-    <group ref={sculpture} scale={[0.1, 0.1, 0.1]} rotation={[0.12, -0.42, -0.25]}>
+    <group ref={sculpture} visible={!loaderPreview} scale={[0.1, 0.1, 0.1]} rotation={[0.12, -0.42, -0.25]}>
       <group ref={revealGroup}>
         <group ref={floatGroup}>
           {orbitV2 ? (
             <>
-              <group ref={outerPivot} rotation={[0.12, -0.18, 0.08]}>
+              <group ref={outerPivot} name="orbitOuter" rotation={[0.12, -0.18, 0.08]}>
                 <mesh>
                   <orbitBandGeometry args={[1.36, 1.72, 0.24, 0.072, 0.34]} />
                   <meshPhysicalMaterial transparent color="#091326" metalness={0.5} roughness={0.052}
@@ -286,7 +676,7 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
                     ior={1.54} envMapIntensity={2.65} />
                 </mesh>
               </group>
-              <group ref={middlePivot} position={[0.22, 0.02, 0.2]} rotation={[0.74, -0.38, 0.92]}>
+              <group ref={middlePivot} name="orbitMiddle" position={[0.22, 0.02, 0.2]} rotation={[0.74, -0.38, 0.92]}>
                 <mesh>
                   <orbitBandGeometry args={[1.02, 1.02, 0.2, 0.066, -0.48]} />
                   <meshPhysicalMaterial transparent color="#101d37" metalness={0.43} roughness={0.06}
@@ -294,7 +684,7 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
                     ior={1.56} envMapIntensity={2.45} />
                 </mesh>
               </group>
-              <group ref={innerPivot} position={[-0.32, -0.04, -0.16]} rotation={[-0.6, 0.62, -0.56]}>
+              <group ref={innerPivot} name="orbitInner" position={[-0.32, -0.04, -0.16]} rotation={[-0.6, 0.62, -0.56]}>
                 <mesh>
                   <orbitBandGeometry args={[0.72, 0.78, 0.18, 0.06, 0.62]} />
                   <meshPhysicalMaterial transparent color="#0d1930" metalness={0.46} roughness={0.055}
@@ -341,7 +731,27 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
         </group>
       </group>
     </group>
-    <group ref={helixGroup}>
+    {loaderPreview
+      ? <><LoadingSculpture animate={animate} lifecycleRef={lifecycleRef} scanMode={scanMode} orbitVariant={loaderOrbitVariant} />
+          {['bridge', 'progressive', 'unified'].includes(loaderFormation)
+            ? <FormationMorphGeometry lifecycleRef={lifecycleRef} mode={loaderFormation} />
+            : null}
+        </>
+      : !productionScene.current && BEYOND_VISUAL === 'particle'
+      ? (ditherVeilReplaceParticle ? null : <ParticleSculpture progressRef={particleProgress} animate={animate} shape={particleShape} revealRange={particleRevealRange} />)
+      : !productionScene.current ? <RefinedMinimalSculpture progressRef={sceneThreeProgress} animate={animate} /> : null}
+    {/* Production mounts the eventual scene once, before loader readiness.
+        Avoid generating/sorting 30k particles in the completion React commit.
+        This parent remains invisible and its pointer input stays disabled
+        throughout loading; later scenes retain their original component. */}
+    {productionScene.current && <Profiler id="production-particle-scene" onRender={(id, phase, actualDuration, baseDuration, startTime, commitTime) => {
+      performanceRef.current?.note('React particle commit', lifecycleRef.current, { reactPhase: phase, actualDuration, baseDuration, startTime, commitTime })
+    }}><group visible={!loaderPreview}>
+      {BEYOND_VISUAL === 'particle'
+        ? (ditherVeilReplaceParticle ? null : <ParticleSculpture progressRef={particleProgress} animate={animate && !loaderPreview} suspended={loaderPreview} shape={particleShape} revealRange={particleRevealRange} />)
+        : <RefinedMinimalSculpture progressRef={sceneThreeProgress} animate={animate && !loaderPreview} />}
+    </group></Profiler>}
+    <group ref={helixGroup} visible={!loaderPreview}>
       <group scale={[1.25, 0.72, 1]}>
         <mesh geometry={helixGeometry[0].geometry}>
           <meshPhysicalMaterial transparent side={DoubleSide} color="#111a2c" metalness={0.78} roughness={0.08} clearcoat={1} clearcoatRoughness={0.025} envMapIntensity={3.25} emissive="#071225" emissiveIntensity={0.12} />
@@ -375,17 +785,27 @@ function FluxSculpture({ pointerRef, controlRef, animate }) {
 
 // No positioning or expansion state here. Keep this component mounted and resize
 // its parent window to transition to fullscreen; Fiber resizes the same renderer.
-export default function SculptureScene({ pointerRef, controlRef }) {
+export default function SculptureScene({ pointerRef, controlRef, loaderPreview = false, lifecycleRef, onCanvasReady, loaderFormation = null, productionLoader = false, particleShape = 'ribbon', particleRevealRange = null, loaderOrbitVariant = 'original', orbitDiagnostics = null, ditherVeilReplaceParticle = false }) {
   const animate = useSyncExternalStore(subscribeMotion, motionEnabled, () => false)
+  // Preserve the Canvas placement used in the tested B run: the production
+  // handoff translates its existing transform without changing layout bounds.
+  const canvasPlacement = productionLoader
+    ? { left: '50%', top: '50%', transform: 'translate(-50%, -50%) translate(var(--loader-canvas-x, 0px), var(--loader-canvas-y, 0px))' }
+    : { left: 'calc(50% + var(--loader-canvas-x, 0px))', top: 'calc(50% + var(--loader-canvas-y, 0px))', transform: 'translate(-50%, -50%)' }
   return (
       <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 6.7], fov: 36, near: 0.1, far: 30 }}
-        style={{ position: 'absolute', left: '50%', top: '50%', width: '100vw', height: '100vh', transform: 'translate(-50%, -50%)' }}
+        style={{ position: 'absolute', width: '100vw', height: '100vh', ...canvasPlacement }}
         gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
-        onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-        frameloop={animate ? 'always' : 'demand'}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0)
+          // Wait for one browser frame so readiness reflects a mounted,
+          // drawable Canvas rather than only renderer construction.
+          if (!productionLoader) requestAnimationFrame(() => onCanvasReady?.())
+        }}
+        frameloop={loaderPreview || animate ? 'always' : 'demand'}
         fallback={<span>3D preview unavailable</span>}>
         <StudioLighting />
-        <FluxSculpture pointerRef={pointerRef} controlRef={controlRef} animate={animate} />
+        <FluxSculpture pointerRef={pointerRef} controlRef={controlRef} animate={animate} loaderPreview={loaderPreview} lifecycleRef={lifecycleRef} loaderFormation={loaderFormation} productionLoader={productionLoader} onCanvasReady={onCanvasReady} particleShape={particleShape} particleRevealRange={particleRevealRange} loaderOrbitVariant={loaderOrbitVariant} orbitDiagnostics={orbitDiagnostics} ditherVeilReplaceParticle={ditherVeilReplaceParticle} />
       </Canvas>
   )
 }

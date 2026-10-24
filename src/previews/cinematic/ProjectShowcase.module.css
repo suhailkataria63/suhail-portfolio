@@ -54,7 +54,6 @@
 @keyframes visitOrbitSpin { to { transform: rotate(342deg); } }
 
 .projectCopy { min-width: 0; }
-.projectHitDebug { position: fixed; z-index: 9999; top: 12px; left: 12px; max-width: min(540px, calc(100vw - 24px)); margin: 0; padding: 10px 12px; border: 1px solid rgba(255, 59, 129, 0.8); background: rgba(6, 10, 18, 0.9); color: #fff; font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; pointer-events: none; }
 .projectLabel { display: block; margin-bottom: clamp(18px, 2.5vh, 28px); opacity: 0; will-change: transform, opacity; }
 .projectName { display: block; margin-bottom: 12px; }
 .headlineMask { margin-bottom: 18px; overflow: hidden; }
@@ -93,4 +92,55 @@
   .visitProject { right: 12px; bottom: 12px; }
 }
 
-@media (prefers-reduced-motion: reduce) { .showcase { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .showcase:not([data-project-tilt-preview='true']) { display: none; }
+  .showcase[data-project-tilt-preview='true'] {
+    position: fixed;
+    z-index: 20;
+    inset: 68px 0 0;
+    display: block;
+    overflow-y: auto;
+    pointer-events: auto;
+    background: #080b12;
+    perspective: none;
+    overscroll-behavior: contain;
+  }
+  .showcase[data-project-tilt-preview='true']::after { display: none; }
+  .showcase[data-project-tilt-preview='true'] .intro { display: none; }
+  .showcase[data-project-tilt-preview='true'] .gallery {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12vh;
+    padding: 10vh 5vw 16vh;
+  }
+  .showcase[data-project-tilt-preview='true'] .projectSlot,
+  .showcase[data-project-tilt-preview='true'] .slot0,
+  .showcase[data-project-tilt-preview='true'] .slot1,
+  .showcase[data-project-tilt-preview='true'] .slot2 {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    width: min(1100px, 90vw);
+    margin: 0 auto;
+    transform: none !important;
+  }
+  .showcase[data-project-tilt-preview='true'] .project {
+    display: grid;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+  }
+  .showcase[data-project-tilt-preview='true'] .project::before { display: none; }
+  .showcase[data-project-tilt-preview='true'] .screenshotEntrance,
+  .showcase[data-project-tilt-preview='true'] .typographyEntrance,
+  .showcase[data-project-tilt-preview='true'] .depthFrame,
+  .showcase[data-project-tilt-preview='true'] .projectLabel,
+  .showcase[data-project-tilt-preview='true'] .headlineTrack,
+  .showcase[data-project-tilt-preview='true'] .projectCopy p {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -3,8 +3,9 @@ import { createInkRenderer, INK_POINTS } from './inkRenderer'
 
 // Owns only the ink layer. Future section/scroll timelines can animate the hero
 // independently, without competing with React state or pointer-driven transforms.
-export function useLiquidInk(heroRef, canvasRef, controlRef) {
+export function useLiquidInk(heroRef, canvasRef, controlRef, enabled = true) {
   useEffect(() => {
+    if (!enabled) return undefined
     const hero = heroRef.current
     const canvas = canvasRef.current
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -27,8 +28,17 @@ export function useLiquidInk(heroRef, canvasRef, controlRef) {
       previousTime = 0
     }
 
+    const clearLoaderInk = () => {
+      inside = false
+      opacity = 0
+      stop()
+      renderer?.clear()
+    }
+    const loaderOwnsHero = () => hero.dataset.loaderActive === 'true'
+
     const tick = now => {
       frame = 0
+      if (loaderOwnsHero()) { clearLoaderInk(); return }
       if (!renderer || motion.matches || document.hidden) return
       const dt = Math.min((now - (previousTime || now - 16.67)) / 1000, 0.04)
       previousTime = now
@@ -62,6 +72,7 @@ export function useLiquidInk(heroRef, canvasRef, controlRef) {
     }
 
     const wake = () => {
+      if (loaderOwnsHero()) { clearLoaderInk(); return }
       lastInput = performance.now()
       if (!frame && renderer && !motion.matches && !document.hidden) frame = requestAnimationFrame(tick)
     }
@@ -85,6 +96,7 @@ export function useLiquidInk(heroRef, canvasRef, controlRef) {
       wake()
     }
     const move = event => {
+      if (loaderOwnsHero()) { clearLoaderInk(); return }
       if (motion.matches || event.pointerType === 'touch') return
       // Match the shader's CSS-pixel space, including scrolling/layout changes.
       bounds = canvas.getBoundingClientRect()
@@ -112,6 +124,10 @@ export function useLiquidInk(heroRef, canvasRef, controlRef) {
       stop()
       renderer = null
     }
+    // Do not reveal an ink trail accumulated behind the loader. A fresh Hero
+    // pointer event starts the unchanged interaction after ownership releases.
+    const loaderObserver = new MutationObserver(clearLoaderInk)
+    loaderObserver.observe(hero, { attributes: true, attributeFilter: ['data-loader-active'] })
     const observer = new ResizeObserver(resize)
     observer.observe(hero)
     hero.addEventListener('pointermove', move, { passive: true })
@@ -128,6 +144,7 @@ export function useLiquidInk(heroRef, canvasRef, controlRef) {
     return () => {
       stop()
       observer.disconnect()
+      loaderObserver.disconnect()
       hero.removeEventListener('pointermove', move)
       hero.removeEventListener('pointerleave', leave)
       window.removeEventListener('blur', leave)
@@ -140,5 +157,5 @@ export function useLiquidInk(heroRef, canvasRef, controlRef) {
       renderer?.dispose()
       if (controlRef) controlRef.current = null
     }
-  }, [heroRef, canvasRef, controlRef])
+  }, [heroRef, canvasRef, controlRef, enabled])
 }

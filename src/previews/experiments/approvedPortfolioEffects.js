@@ -1,0 +1,30 @@
+export const APPROVED_ABOUT_THREADS_SETTINGS = Object.freeze({
+  color: '#506A90',
+  accentColor: '#A4B3C6',
+  lineCount: 99,
+  thickness: 0.8,
+  softness: 0.8,
+  amplitude: 0.45,
+  distance: 0.44,
+  speed: 0.2,
+  waves: 1.15,
+  angle: 25,
+  parting: 0.19,
+  opacity: 0.51,
+  fade: 0.4,
+})
+
+export const APPROVED_CONTACT_METALLIC_SETTINGS = Object.freeze({
+  color: '#E6EFFF',
+  density: 1.9,
+  softness: 0.17,
+  dispersion: 0.32,
+  distortion: 0.04,
+  edgeBend: 0.6,
+  angle: 70,
+  scale: 0.6,
+  speed: 0.4,
+  rotation: 0,
+  mouseTilt: 0.35,
+  intro: true,
+})

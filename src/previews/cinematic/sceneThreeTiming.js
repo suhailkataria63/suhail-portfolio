@@ -1,0 +1,31 @@
+// Shared phase units for the Beyond composition. The three-line headline
+// entrance is tightened, then a small completed-entrance interval is removed
+// from the front of the remaining timeline. Protected fill, handoff, and
+// constellation phase lengths remain unchanged.
+export const SCENE3_BASE_DURATION = 6.4
+const HEADLINE_PHASE_SCALE = 0.62
+const HEADLINE_PHASE_SHIFT = 0.06
+export const SCENE3_PROGRESS_SCALE = 1.02 - HEADLINE_PHASE_SHIFT
+export const BEYOND_PHASE_SCALE = 0.64 / 0.78
+export const OPENING_EXIT_START = 0.58 * BEYOND_PHASE_SCALE - HEADLINE_PHASE_SHIFT
+export const OPENING_EXIT_DURATION = 0.2 * BEYOND_PHASE_SCALE
+export const CONSTELLATION_START = 0.64 - HEADLINE_PHASE_SHIFT
+export const CONSTELLATION_DURATION = 0.24
+export const ARRANGEMENT_START = 0.74 - HEADLINE_PHASE_SHIFT
+export const ARRANGEMENT_DURATION = 0.2
+export const COMPOSITION_START = 0.66 - HEADLINE_PHASE_SHIFT
+export const COMPOSITION_DURATION = 0.16
+export const COMPOSITION_BODY_START = 0.71 - HEADLINE_PHASE_SHIFT
+export const COMPOSITION_BODY_DURATION = 0.14
+export const FINAL_REVEAL_START = 0.95 - HEADLINE_PHASE_SHIFT
+export const FINAL_REVEAL_DURATION = 0.07
+
+export const TITLE_DURATION = 0.2 * BEYOND_PHASE_SCALE * HEADLINE_PHASE_SCALE
+export const JUST_START = 0.06 * BEYOND_PHASE_SCALE * HEADLINE_PHASE_SCALE
+export const JUST_DURATION = 0.18 * BEYOND_PHASE_SCALE * HEADLINE_PHASE_SCALE
+export const CODE_START = 0.12 * BEYOND_PHASE_SCALE * HEADLINE_PHASE_SCALE
+export const CODE_DURATION = 0.2 * BEYOND_PHASE_SCALE * HEADLINE_PHASE_SCALE
+export const FILL_START = 0.16 * BEYOND_PHASE_SCALE - HEADLINE_PHASE_SHIFT
+export const FILL_DURATION = 0.28 * BEYOND_PHASE_SCALE
+export const SUPPORT_START = 0.34 * BEYOND_PHASE_SCALE - HEADLINE_PHASE_SHIFT
+export const SUPPORT_DURATION = 0.16 * BEYOND_PHASE_SCALE

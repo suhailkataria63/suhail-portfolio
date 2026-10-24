@@ -1,5 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import styles from './SceneThree.module.css'
+import ToolkitRotatingHeading from '../experiments/ToolkitRotatingHeading'
+import { normalizeToolkitWord } from '../experiments/toolkitRotatingSettings'
+import {
+  ARRANGEMENT_DURATION,
+  ARRANGEMENT_START,
+  COMPOSITION_BODY_DURATION,
+  COMPOSITION_BODY_START,
+  COMPOSITION_DURATION,
+  COMPOSITION_START,
+  CODE_DURATION,
+  CODE_START,
+  CONSTELLATION_DURATION,
+  CONSTELLATION_START,
+  FILL_DURATION,
+  FILL_START,
+  FINAL_REVEAL_DURATION,
+  FINAL_REVEAL_START,
+  JUST_DURATION,
+  JUST_START,
+  OPENING_EXIT_DURATION,
+  OPENING_EXIT_START,
+  SCENE3_PROGRESS_SCALE,
+  SUPPORT_DURATION,
+  SUPPORT_START,
+  TITLE_DURATION,
+} from './sceneThreeTiming'
 
 const skills = [
   { name: 'Python', description: 'Clear logic, data workflows, and practical automation.', a: [22, 38], b: [18, 30], size: 'large' },
@@ -18,24 +44,47 @@ const orbitConfig = [
 ]
 const clamp = value => Math.max(0, Math.min(1, value))
 const ease = value => 1 - ((1 - value) ** 3)
+const GradientText = lazy(() => import('../experiments/reactBits/components/typography/GradientText/GradientText'))
+const CodeMetallicWord = lazy(() => import('../experiments/code-metallic/CodeMetallicWord'))
+const CuriosityTypewriterLine = lazy(() => import('../experiments/CuriosityTypewriterLine'))
 
-export default function SceneThree({ controlRef }) {
+export default function SceneThree({ controlRef, fillStartPhase = FILL_START, background = null, backgroundLifecycleRef = null, ditherVisual = null, ditherVeilPreview = false, gradientTextExperiment = null, toolkitExperiment = null, curiosityExperiment = null }) {
   const sceneRef = useRef(null)
+  const sectionLabelRef = useRef(null)
   const moreRef = useRef(null)
   const justRef = useRef(null)
   const codeRef = useRef(null)
   const codeFillRef = useRef(null)
+  const codeOpacityRef = useRef(0)
+  const codeFillOpacityRef = useRef(0)
+  const gradientEnabled = Boolean(gradientTextExperiment?.enabled)
+  const gradientEnabledRef = useRef(gradientEnabled)
+  const gradientActiveRef = useRef(false)
+  const [gradientActive, setGradientActive] = useState(false)
+  gradientEnabledRef.current = gradientEnabled
   const supportRef = useRef(null)
   const constellationRef = useRef(null)
   const compositionCopyRef = useRef(null)
   const compositionTitleRef = useRef(null)
   const compositionBodyRef = useRef(null)
+  const toolkitExperimentRef = useRef(toolkitExperiment)
+  const toolkitActiveRef = useRef(false)
+  const [toolkitActive, setToolkitActive] = useState(false)
+  const [toolkitWord, setToolkitWord] = useState('TOOLS')
+  toolkitExperimentRef.current = toolkitExperiment
   const orbitSystemRef = useRef(null)
   const sphereRef = useRef(null)
   const nodeRefs = useRef([])
   const lineRefs = useRef([])
   const orbitRefs = useRef([])
   const finalRef = useRef(null)
+  const curiosityExperimentRef = useRef(curiosityExperiment)
+  curiosityExperimentRef.current = curiosityExperiment
+  // Publish only actual activity edges. An entry counter preserves a fast
+  // exit/re-entry even when React batches both notifications into one render.
+  const curiosityLifecycleRef = useRef({ snapshot: { active: false, entry: 0 }, listeners: new Set() })
+  const ditherVisualRef = useRef(null)
+  const ditherOpacityRef = useRef(0)
   const contactExitRef = useRef(0)
   const [hovered, setHovered] = useState(null)
   const [selected, setSelected] = useState(null)
@@ -44,47 +93,99 @@ export default function SceneThree({ controlRef }) {
 
   useEffect(() => {
     if (!controlRef) return undefined
+    const publishCuriosity = active => {
+      const lifecycle = curiosityLifecycleRef.current
+      if (lifecycle.snapshot.active === active) return
+      lifecycle.snapshot = { active, entry: lifecycle.snapshot.entry + (active ? 1 : 0) }
+      lifecycle.listeners.forEach(update => update())
+    }
+    const publishBackground = (opacity, active = opacity > 0) => {
+      if (!backgroundLifecycleRef) return
+      const lifecycle = backgroundLifecycleRef.current
+      lifecycle.opacity = opacity
+      lifecycle.active = active
+      lifecycle.listeners.forEach(update => update())
+    }
     controlRef.current = {
-      setProgress: value => {
+      setProgress: (value, choreography) => {
         const progress = clamp(value)
-        const titleIn = ease(clamp(progress / 0.2))
-        const fill = clamp((progress - 0.16) / 0.28)
-        const constellation = ease(clamp((progress - 0.62) / 0.24))
-        const arrangement = ease(clamp((progress - 0.72) / 0.2))
-        const openingExit = ease(clamp((progress - 0.58) / 0.17))
-        const finalReveal = ease(clamp((progress - 0.93) / 0.07)) * (1 - contactExitRef.current)
+        const phase = progress * SCENE3_PROGRESS_SCALE
+        const titleIn = ease(clamp(phase / TITLE_DURATION))
+        const fill = clamp(choreography?.fill ?? (phase - fillStartPhase) / FILL_DURATION)
+        const constellation = ease(clamp((phase - CONSTELLATION_START) / CONSTELLATION_DURATION))
+        const arrangement = ease(clamp(choreography?.arrangement ?? (phase - ARRANGEMENT_START) / ARRANGEMENT_DURATION))
+        const openingExit = ease(clamp((phase - OPENING_EXIT_START) / OPENING_EXIT_DURATION))
+        const finalEntrance = ease(clamp((phase - FINAL_REVEAL_START) / FINAL_REVEAL_DURATION))
+        const finalReveal = finalEntrance * (1 - contactExitRef.current)
+        // Use the authored final-scene entrance and completed Contact exit,
+        // rather than treating an eased opacity sample as a timer lifecycle.
+        publishCuriosity(Boolean(curiosityExperimentRef.current)
+          && phase > FINAL_REVEAL_START && contactExitRef.current < 1)
+        const constellationFade = choreography ? ease(clamp(choreography.constellationExit)) : finalReveal
+        // Reuse the authored Beyond entrance. The scene's existing opacity
+        // supplies the Curious-to-Contact fade, so the background has no
+        // internal fade at the opening/Toolkit/Curious boundaries.
+        const beyondVisible = progress > 0 && titleIn > 0
+        publishBackground(beyondVisible ? titleIn : 0,
+          beyondVisible && contactExitRef.current < 1)
         if (sceneRef.current) sceneRef.current.style.opacity = progress > 0 ? `${1 - contactExitRef.current}` : '0'
         if (moreRef.current) {
           moreRef.current.style.opacity = `${titleIn * (1 - openingExit)}`
           moreRef.current.style.transform = `translate3d(0, ${(1 - titleIn) * 80 - openingExit * 65}px, 0)`
         }
+        if (sectionLabelRef.current) {
+          sectionLabelRef.current.style.opacity = `${titleIn * (1 - openingExit)}`
+          sectionLabelRef.current.style.transform = `translate3d(0, ${(1 - titleIn) * 80 - openingExit * 65}px, 0)`
+        }
         if (justRef.current) {
-          const justIn = ease(clamp((progress - 0.06) / 0.18))
+          const justIn = ease(clamp((phase - JUST_START) / JUST_DURATION))
           justRef.current.style.opacity = `${justIn * (1 - openingExit)}`
           justRef.current.style.transform = `translate3d(0, ${(1 - justIn) * 80 - openingExit * 65}px, 0)`
         }
         if (codeRef.current) {
-          const codeIn = ease(clamp((progress - 0.12) / 0.2))
-          codeRef.current.style.opacity = `${codeIn * (1 - openingExit)}`
+          const codeIn = ease(clamp((phase - CODE_START) / CODE_DURATION))
+          const codeOpacity = codeIn * (1 - openingExit)
+          codeOpacityRef.current = codeOpacity
+          codeRef.current.style.opacity = `${codeOpacity}`
           codeRef.current.style.transform = `translate3d(0, ${(1 - codeIn) * 80 - openingExit * 65}px, 0)`
+          const active = gradientEnabledRef.current && codeOpacity > 0 && contactExitRef.current < 1
+          if (active !== gradientActiveRef.current) {
+            gradientActiveRef.current = active
+            setGradientActive(active)
+          }
+          if (ditherVisualRef.current) {
+            const ditherOpacity = codeIn * (1 - openingExit)
+            ditherOpacityRef.current = ditherOpacity
+            ditherVisualRef.current.style.display = ditherOpacity > 0.001 ? 'block' : 'none'
+            ditherVisualRef.current.style.opacity = `${ditherOpacity}`
+            ditherVisualRef.current.style.pointerEvents = ditherOpacity > 0.01 ? 'auto' : 'none'
+          }
         }
+        codeFillOpacityRef.current = fill
         if (codeFillRef.current) codeFillRef.current.style.opacity = `${fill}`
         if (supportRef.current) {
-          const supportIn = ease(clamp((progress - 0.34) / 0.16))
+          const supportIn = ease(clamp(choreography?.support ?? (phase - SUPPORT_START) / SUPPORT_DURATION))
           supportRef.current.style.opacity = `${supportIn * (1 - openingExit)}`
           supportRef.current.style.transform = `translate3d(0, ${(1 - supportIn) * 22 - openingExit * 30}px, 0)`
         }
         if (constellationRef.current) {
-          constellationRef.current.style.opacity = `${constellation * (1 - finalReveal)}`
-          constellationRef.current.style.transform = `translate3d(0, ${constellation < 1 ? (1 - constellation) * 40 : -finalReveal * 80}px, 0) scale(${0.92 + constellation * 0.08})`
+          constellationRef.current.style.opacity = `${constellation * (1 - constellationFade)}`
+          constellationRef.current.style.transform = `translate3d(0, ${constellation < 1 ? (1 - constellation) * 40 : -constellationFade * 80}px, 0) scale(${0.92 + constellation * 0.08})`
         }
-        const compositionIn = ease(clamp((progress - 0.64) / 0.16))
-        if (compositionCopyRef.current) compositionCopyRef.current.style.opacity = `${compositionIn * (1 - finalReveal)}`
+        const compositionIn = ease(clamp((phase - COMPOSITION_START) / COMPOSITION_DURATION))
+        // The same authored heading and constellation visibility envelopes
+        // gate React Bits' sole word timer; this adds no timeline or threshold.
+        const toolkitVisible = Boolean(toolkitExperimentRef.current) && compositionIn > 0 && constellation > 0 && constellationFade < 1 && contactExitRef.current < 1
+        if (toolkitVisible !== toolkitActiveRef.current) {
+          toolkitActiveRef.current = toolkitVisible
+          setToolkitActive(toolkitVisible)
+        }
+        if (compositionCopyRef.current) compositionCopyRef.current.style.opacity = `${compositionIn * (1 - constellationFade)}`
         if (compositionTitleRef.current) compositionTitleRef.current.style.transform = `translate3d(0, ${(1 - compositionIn) * 24}px, 0)`
-        if (compositionBodyRef.current) compositionBodyRef.current.style.transform = `translate3d(0, ${(1 - ease(clamp((progress - 0.69) / 0.14))) * 18}px, 0)`
+        if (compositionBodyRef.current) compositionBodyRef.current.style.transform = `translate3d(0, ${(1 - ease(clamp((phase - COMPOSITION_BODY_START) / COMPOSITION_BODY_DURATION))) * 18}px, 0)`
         if (sphereRef.current) {
-          sphereRef.current.style.opacity = `${constellation * (1 - finalReveal)}`
-          sphereRef.current.style.transform = `translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px))) scale(${0.7 + constellation * 0.3})`
+          sphereRef.current.style.opacity = `${constellation * (1 - constellationFade)}`
+          sphereRef.current.style.transform = `translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px))) scale(${0.7 + (choreography ? arrangement : constellation) * 0.3})`
         }
         nodeRefs.current.forEach((node, index) => {
           if (!node) return
@@ -96,9 +197,12 @@ export default function SceneThree({ controlRef }) {
           const y = 50 + Math.sin(angle) * radiusY
           node.style.left = `${x}%`
           node.style.top = `${y}%`
-          const nodeReveal = ease(clamp((progress - 0.62 - index * 0.025) / 0.24))
-          node.style.opacity = `${nodeReveal * (1 - finalReveal)}`
-          node.style.pointerEvents = nodeReveal > 0.01 && finalReveal < 0.99 ? 'auto' : 'none'
+          const nodePhase = choreography
+            ? CONSTELLATION_START + choreography.constellationEntry * (CONSTELLATION_DURATION + (orbitConfig.length - 1) * 0.025)
+            : phase
+          const nodeReveal = ease(clamp((nodePhase - CONSTELLATION_START - index * 0.025) / CONSTELLATION_DURATION))
+          node.style.opacity = `${nodeReveal * (1 - constellationFade)}`
+          node.style.pointerEvents = nodeReveal > 0.01 && constellationFade < 0.99 ? 'auto' : 'none'
           node.style.setProperty('--depth', `${(index % 3 - 1) * 18}px`)
           node.style.transform = `translate(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px))) translateZ(var(--depth)) scale(${0.7 + constellation * 0.3})`
         })
@@ -121,7 +225,7 @@ export default function SceneThree({ controlRef }) {
           line.style.strokeDashoffset = length * (1 - constellation)
           const focusedSkill = interactionRef.current.hovered ?? interactionRef.current.selected
           const related = focusedSkill === null || links[index].includes(focusedSkill)
-          line.style.opacity = `${constellation * (1 - finalReveal) * (related ? 0.55 : 0.12)}`
+          line.style.opacity = `${constellation * (1 - constellationFade) * (related ? 0.55 : 0.12)}`
         })
         orbitRefs.current.forEach((orbit, index) => {
           if (!orbit) return
@@ -129,32 +233,101 @@ export default function SceneThree({ controlRef }) {
           orbit.dataset.length = length
           orbit.style.strokeDasharray = length
           orbit.style.strokeDashoffset = length * (1 - constellation)
-          orbit.style.opacity = `${constellation * (1 - finalReveal) * (index === 0 ? 0.72 : 0.46)}`
+          orbit.style.opacity = `${constellation * (1 - constellationFade) * (index === 0 ? 0.72 : 0.46)}`
         })
         if (finalRef.current) {
           finalRef.current.style.opacity = `${finalReveal}`
           finalRef.current.style.transform = `translate3d(0, ${(1 - finalReveal) * 55}px, 0)`
         }
       },
-      setContactExit: value => { contactExitRef.current = clamp(value) },
+      setContactExit: value => {
+        contactExitRef.current = clamp(value)
+        if (contactExitRef.current === 1) publishCuriosity(false)
+      },
     }
     controlRef.current.setProgress(0)
-    return () => { controlRef.current = null }
-  }, [controlRef])
+    return () => {
+      publishCuriosity(false)
+      publishBackground(0)
+      controlRef.current = null
+    }
+  }, [controlRef, fillStartPhase, backgroundLifecycleRef])
+
+  useLayoutEffect(() => {
+    const layer = ditherVisualRef.current
+    if (!layer) return
+    const opacity = ditherOpacityRef.current
+    layer.style.display = opacity > 0.001 ? 'block' : 'none'
+    layer.style.opacity = `${opacity}`
+    layer.style.pointerEvents = opacity > 0.01 ? 'auto' : 'none'
+  }, [ditherVisual])
+
+  useLayoutEffect(() => {
+    const active = gradientEnabled && codeOpacityRef.current > 0 && contactExitRef.current < 1
+    if (active !== gradientActiveRef.current) {
+      gradientActiveRef.current = active
+      setGradientActive(active)
+    }
+    if (codeFillRef.current) codeFillRef.current.style.opacity = `${codeFillOpacityRef.current}`
+  }, [gradientEnabled])
 
   const active = hovered ?? selected
+  const toolkitExperimental = toolkitExperiment?.comparison === 'experimental'
+  const reaction = toolkitExperiment?.reaction ?? {}
+  const reactive = toolkitExperimental && reaction.enabled && toolkitActive
+  const normalizedWord = normalizeToolkitWord(toolkitWord)
+  const toolkitNode = skills.findIndex(skill => normalizeToolkitWord(skill.name) === normalizedWord)
+  const toolsAll = normalizedWord === 'TOOLS' && reaction.toolsBehavior === 'all'
+  const toolsSphere = reactive && normalizedWord === 'TOOLS' && reaction.toolsBehavior === 'sphere'
   return (
-    <section ref={sceneRef} className={styles.scene} data-scene-three aria-label="More than just code">
-      <div className={styles.kinetic} aria-hidden="true">
-        <span ref={moreRef}>MORE THAN</span>
+    <section
+      ref={sceneRef}
+      className={`${styles.scene} ${toolkitExperimental ? styles.toolkitTypeScene : ''} ${toolkitExperimental && reaction.enabled ? styles.toolkitReactive : ''}`}
+      style={toolkitExperimental ? {
+        '--toolkit-node-brightness': reaction.brightness,
+        '--toolkit-glow': reaction.glow,
+        '--toolkit-label-brightness': reaction.labelBrightness,
+        '--toolkit-highlight-duration': `${reaction.duration}ms`,
+        '--toolkit-highlight-color': reaction.color,
+      } : undefined}
+      data-scene-three
+      data-dither-veil-active={ditherVeilPreview ? 'true' : undefined}
+      data-ghost-fibers={backgroundLifecycleRef ? 'enabled' : undefined}
+      aria-label="More than just code"
+    >
+      {background}
+      {ditherVisual && <div ref={ditherVisualRef} className={styles.ditherVisual} aria-hidden="true">{ditherVisual}</div>}
+      <div className={styles.kinetic} data-scene-layout aria-hidden="true">
+        <span ref={sectionLabelRef} className={styles.sectionLabel}>BEYOND / EXPLORATIONS</span>
+        <span ref={moreRef} data-scene-more>MORE <span data-scene-than>THAN</span></span>
         <span ref={justRef}>JUST</span>
-        <span ref={codeRef} className={styles.code}>CODE.<span ref={codeFillRef}>CODE.</span></span>
+        <span ref={codeRef} className={`${styles.code} ${gradientEnabled ? styles.gradientCode : ''}`} data-scene-code>
+          {gradientEnabled ? <><Suspense fallback="CODE">{gradientTextExperiment.mode && gradientTextExperiment.mode !== 'gradient' ? <CodeMetallicWord
+            mode={gradientTextExperiment.mode}
+            settings={gradientTextExperiment.mode === 'hybrid' ? gradientTextExperiment.hybridSettings : gradientTextExperiment.metallicSettings}
+            gradient={gradientTextExperiment.settings}
+            active={gradientActive}
+            className={styles.metallicWord}
+            onStatus={gradientTextExperiment.onStatus}
+          /> : <GradientText
+            {...gradientTextExperiment.settings}
+            active={gradientActive}
+            className={styles.gradientWord}
+            style={{ pointerEvents: gradientActive && (gradientTextExperiment.settings.followPointer || gradientTextExperiment.settings.pauseOnHover) ? 'auto' : 'none' }}
+          >CODE</GradientText>}</Suspense>.</> : <>CODE.<span ref={codeFillRef}>CODE.</span></>}
+        </span>
         <p ref={supportRef}>The tools are only part of the story. It&apos;s the curiosity to explore, experiment, and create that drives everything I do.</p>
       </div>
       <div ref={constellationRef} className={styles.constellationStage}>
         <div ref={compositionCopyRef} className={styles.compositionCopy}>
-          <span>03 / 03 — BEYOND THE CODE</span>
-          <h2 ref={compositionTitleRef}>TOOLS TO<br />TURN IDEAS<br />INTO REALITY.</h2>
+          <span>BEYOND / THE TOOLKIT</span>
+          <h2 ref={compositionTitleRef}>{toolkitExperimental ? <ToolkitRotatingHeading
+            key={toolkitExperiment.resetKey ?? 0}
+            settings={toolkitExperiment}
+            active={toolkitActive}
+            replayKey={toolkitExperiment.replayKey ?? 0}
+            onWordChange={setToolkitWord}
+          /> : <>TOOLS TO<br />TURN IDEAS<br />INTO REALITY.</>}</h2>
           <p ref={compositionBodyRef}>From AI-powered applications to thoughtful web experiences, I enjoy combining different technologies to build things that are genuinely useful.</p>
         </div>
       <div
@@ -194,7 +367,7 @@ export default function SceneThree({ controlRef }) {
           <ellipse className={styles.thirdOrbit} cx="50" cy="50" rx="31" ry="14" transform="rotate(66 50 50)" />
           {links.map((_, index) => <path key={index} ref={element => { lineRefs.current[index] = element }} d="M 50 50 Q 50 50 50 50" />)}
         </svg>
-        <div ref={sphereRef} className={styles.sphere} aria-hidden="true" />
+        <div ref={sphereRef} className={styles.sphere} data-toolkit-lit={toolsSphere ? 'true' : undefined} aria-hidden="true" />
         {skills.map((skill, index) => (
           <button
             key={skill.name}
@@ -208,6 +381,7 @@ export default function SceneThree({ controlRef }) {
             onClick={() => { const next = selected === index ? null : index; interactionRef.current.selected = next; setSelected(next) }}
             aria-label={`${skill.name}: ${skill.description}`}
             aria-pressed={selected === index}
+            data-toolkit-lit={reactive && reaction.nodeHighlighting && (toolsAll || toolkitNode === index) ? 'true' : undefined}
           >
             <i aria-hidden="true" />
             <span>{skill.name}</span>
@@ -218,8 +392,17 @@ export default function SceneThree({ controlRef }) {
       </div>
       </div>
       <div ref={finalRef} className={styles.finalStatement}>
-        <span>ALWAYS</span>
-        <span>CURIOUS.</span>
+        {curiosityExperiment?.comparison === 'typewriter' ? (
+          <span className={styles.curiosityAlways}>
+            <span className={styles.curiosityAlwaysAnchor} aria-hidden="true">ALWAYS</span>
+            <span className={styles.curiosityAlwaysVisual} style={{ fontSize: `${curiosityExperiment.headlineScale ?? 1}em` }}>ALWAYS</span>
+          </span>
+        ) : <span>ALWAYS</span>}
+        {curiosityExperiment?.comparison === 'typewriter' ? (
+          <Suspense fallback={<span style={{ visibility: 'hidden' }}>CURIOUS.</span>}>
+            <CuriosityTypewriterLine settings={curiosityExperiment} lifecycleRef={curiosityLifecycleRef} replayKey={curiosityExperiment.replayKey ?? 0} />
+          </Suspense>
+        ) : <span>CURIOUS.</span>}
         <p>Keep learning, keep asking better questions, and keep exploring what an idea can become.</p>
       </div>
     </section>

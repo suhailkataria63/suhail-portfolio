@@ -1,0 +1,4 @@
+.word { position: relative; display: inline-block; vertical-align: baseline; font: inherit; letter-spacing: inherit; color: #18253a; -webkit-text-stroke: 0; }
+.anchor { position: relative; display: inline-block; vertical-align: baseline; font: inherit; letter-spacing: inherit; white-space: nowrap; }
+.baseline { display: inline-block; width: 0; height: 0; padding: 0; border: 0; vertical-align: baseline; }
+.paint { position: absolute; display: block; pointer-events: inherit; }
